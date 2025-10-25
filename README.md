@@ -1,266 +1,267 @@
-# Roblox Player Display & Stats System
+# 🎮 Roblox Player Display System
 
-A comprehensive Roblox game system featuring custom player overhead displays with roles, ranks, and a robust checkpoint-based progression system with DataStore persistence.
+[![Version](https://img.shields.io/badge/version-2.2-blue.svg)](https://github.com/yourusername/player-display-system)
+[![Roblox](https://img.shields.io/badge/platform-Roblox-red.svg)](https://www.roblox.com)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## 📦 Features
+A customizable and feature-rich player display system for Roblox games with animated titles, roles, and rank progression.
 
-### PlayerDisplayClient
-- **Custom Overhead Display**: Minimalist, clean player name tags with role badges
-- **Role System**: Support for Owner, Developer, HeadAdmin, Admin, Mod, Cheater, and Helper roles
-- **Animated Colors**: Multiple color animation types (rainbow, RGB pulses, galaxy effects, etc.)
-- **Verified Users**: Custom checkmark badges with rainbow animation
-- **Premium Integration**: Displays Roblox Premium icon
-- **Rank System**: Dynamic rank titles based on summit count (from "Cupuh Banget" to "GOD")
-- **Custom Titles**: Personalized titles for specific users
+## ✨ Features
 
-### StatsCore
-- **Sequential Checkpoint System**: Anti-skip validation ensures players complete checkpoints in order
-- **DataStore Persistence**: Automatic save/load of player progress
-- **Summit Tracking**: Counts successful summit completions
-- **Self-Healing Validation**: Prevents checkpoint skipping exploits
-- **Auto-Respawn**: Teleports players to their last checkpoint on spawn
-- **Flexible Folder Support**: Works with "CheckPoint", "Checkpoint", and custom summit folders
-- **Touch Detection**: Robust touch detection with cooldown and debounce systems
+- 🏆 **Dynamic Rank System** - 20+ rank titles based on Summit count
+- 👑 **Role Management** - Owner, Developer, Admin, Mod, Helper, and more
+- 🎨 **Animated Colors** - 15+ color animation effects (Rainbow, Galaxy, RGB pulses)
+- ✅ **Verified Badges** - Animated checkmarks for verified users
+- 💎 **Premium Support** - Displays Roblox Premium icon
+- 🎯 **Custom Titles** - Personalized titles with animated colors
+- 📊 **Real-time Updates** - Summit count updates dynamically
+- 🔧 **Easy Configuration** - Simple tables for setup
 
-## 🚀 Installation
+## 📦 Installation
 
-### PlayerDisplayClient Setup
-1. Copy `PlayerDisplayClient.lua`
-2. Place in:
-   - `StarterPlayer > StarterPlayerScripts` (recommended), or
+1. **Download** the `PlayerDisplayClient.lua` file
+2. **Place** it in either:
+   - `StarterPlayer` → `StarterPlayerScripts` (recommended)
    - `StarterGui`
-3. Configure the settings at the top of the script
-
-### StatsCore Setup
-1. Copy `StatsCore.server.lua`
-2. Place in `ServerScriptService`
-3. Create folders in Workspace:
-   - `CheckPoint` or `Checkpoint` (for checkpoint parts)
-   - `Summit` (for summit/finish parts)
-4. Name checkpoint parts sequentially: `CP_1`, `CP_2`, `Checkpoint 3`, etc.
+3. **Configure** the tables in the configuration section
+4. **Test** in your game!
 
 ## ⚙️ Configuration
 
-### PlayerDisplayClient Configuration
+### 1. Adding Roles
 
 ```lua
--- Verified Users
-local VerifiedUsersList = {
-    ["Username"] = true,
-}
-
--- Roles
 local ROLES = {
-    Owner = { ["username"] = true },
-    Developer = { ["username"] = true },
-    -- ... add more roles
-}
-
--- Custom Titles
-local CUSTOM_TITLES = {
-    ["Username"] = "CEO",
-}
-
--- Custom Colors
-local CUSTOM_COLOR_TYPES = {
-    ["Username"] = "rainbow",  -- Available: rainbow, pink_pulse, purple_galaxy, etc.
+    Owner = {
+        ["Username1"] = true,
+        ["Username2"] = true
+    },
+    Developer = { 
+        ["ItoRenz00"] = true,
+        ["DevPlayer1"] = true
+    },
+    Admin = {
+        ["Admin1"] = true,
+        ["Admin2"] = true
+    }
 }
 ```
 
-### StatsCore Configuration
+### 2. Adding Custom Titles
 
 ```lua
-local CONFIG = {
-    SUMMIT_FOLDER_NAME = "Summit",          -- Summit parts folder name
-    TOUCH_COOLDOWN_SEC = 0.8,               -- Cooldown between touches
-    RESPAWN_TO_LAST_CP = true,              -- Enable checkpoint respawn
-    TELEPORT_OFFSET = Vector3.new(0, 3, 0), -- Spawn offset from checkpoint
-    DEBUG_LOG = RunService:IsStudio()       -- Debug mode (Studio only)
+local CUSTOM_TITLES = {
+    ["ItoRenz00"] = "CEO",
+    ["Player1"] = "VIP Member",
+    ["Player2"] = "Content Creator",
+    ["Admin1"] = "Senior Admin"
 }
 ```
 
-## 📊 Rank System
+### 3. Adding Color Animations
 
-The system includes 20+ rank tiers based on summit count:
+```lua
+local CUSTOM_COLOR_TYPES = {
+    ["ItoRenz00"] = "random_rgb_new_6",
+    ["Player1"] = "rainbow",
+    ["Player2"] = "purple_galaxy",
+    ["Admin1"] = "blue_rgb",
+    
+    -- Owner Rainbow (Special Effect)
+    ["OwnerUsername1"] = "owner_rainbow"
+}
+```
+
+### 4. Adding Verified Users
+
+```lua
+local VerifiedUsersList = {
+    ["ItoRenz00"] = true,
+    ["Player1"] = true,
+    ["VIPUser"] = true
+}
+```
+
+## 🎨 Available Color Types
+
+| Color Type | Description |
+|------------|-------------|
+| `rainbow` | Classic rainbow cycle |
+| `owner_rainbow` | Slow elegant rainbow (for owners) |
+| `purple_galaxy` | Purple to pink galaxy effect |
+| `pink_pulse` | Pulsing pink animation |
+| `blue_rgb` | Blue-cyan transitions |
+| `red_rgb` | Red-orange-pink gradient |
+| `black_random_rgb` | Dark RGB transitions |
+| `random_rgb_new_1` to `random_rgb_new_6` | Various RGB effects |
+| `random_rgb_1` & `random_rgb_2` | Alternative RGB animations |
+
+## 🏆 Rank System
+
+The system includes 20+ ranks based on Summit count:
 
 | Summit Count | Rank | Color |
 |--------------|------|-------|
-| 10000+ | 🌟 GOD | Gold |
-| 8000+ | ⚡ Dewa | Purple |
-| 6500+ | 🔥 Si Paling Pro | Red Orange |
-| 5000+ | ❄️ Too EZ for me | Sky Blue |
-| 4000+ | 🌪️ Juara | Steel Blue |
-| 3500+ | 💎 Pendaki Elite | Light Cyan |
-| 3000+ | 🏆 Jago Mampus | Gold |
-| 2500+ | ⚔️ Legendaris | Orange |
-| 2000+ | 🗡️ Udah Gila | Purple |
-| 1800+ | 🌀 Mendaki Tanpa Henti | Indigo |
-| 1600+ | 🔮 Master Summit | Medium Purple |
-| 1400+ | ⭐ Pendaki Langit | Yellow |
-| 1200+ | 🚀 Tak Terhentikan | Cyan |
-| 1000+ | 👑 Master | Gold |
-| 100+ | 🏔️ Jago Banget | Green |
+| 10,000+ | 🌟 GOD | Gold |
+| 8,000+ | ⚡ Dewa | Purple |
+| 6,500+ | 🔥 Si Paling Pro | Orange Red |
+| 5,000+ | ❄️ Too EZ for me | Deep Sky Blue |
+| 3,000+ | 🏆 Jago Mampus | Gold |
+| 1,000+ | 👑 Master | Gold |
+| 100+ | 🏔️ Jago Banget | Forest Green |
 | 50+ | 💪 Tryhard | Orange |
-| 25+ | 🔥 Lumayan Jago | Red Orange |
+| 25+ | 🔥 Lumayan Jago | Orange Red |
 | 10+ | 🗿 Pendaki Pemula | Tan |
 | 0-9 | 🤡 Cupuh Banget | White |
 
-## 🎨 Available Color Animations
+## 🎯 Display Features
 
-- `rainbow` - Full spectrum color cycle
-- `pink_pulse` - Pulsing pink gradient
-- `purple_galaxy` - Galaxy purple transition (4-phase cycle)
-- `owner_rainbow` - Smooth rainbow for owners
-- `random_rgb_new_1` to `random_rgb_new_6` - Various RGB sine wave animations
-- `random_rgb_1`, `random_rgb_2` - Classic RGB animations
-- `blue_rgb` - Blue-dominant RGB cycle
-- `red_rgb` - Red-dominant RGB cycle
-- `black_random_rgb` - Dark RGB cycle with black base
+### Line 1: Role + Custom Title
+- Shows role with colored brackets
+- Displays custom title with animated colors
+- Special owner rainbow effect
 
-## 🔧 How It Works
+### Line 2: Name Display
+- Premium icon (if applicable)
+- Player DisplayName
+- Animated verified checkmark (if applicable)
 
-### Checkpoint System
-1. Players must touch checkpoints **sequentially** (CP_1 → CP_2 → CP_3...)
-2. Skipping checkpoints is automatically prevented
-3. Progress is saved to DataStore automatically
-4. On respawn, players teleport to their last checkpoint
+### Line 3: Rank + Summit
+- Dynamic rank title with color
+- Real-time summit count
+- Auto-updates on value change
 
-### Summit System
-1. Players must complete ALL checkpoints before touching the summit
-2. Successful summit increments the summit counter
-3. Checkpoint progress resets to 0 after summit
-4. Summit count is displayed in the overhead display
+## 🔧 Advanced Settings
 
-### Display System
-1. Displays role badge with emoji (if applicable)
-2. Shows custom title with animated color (if configured)
-3. Displays Premium icon (⭐) and verified checkmark (✓) with rainbow animation
-4. Shows dynamic rank based on summit count
-5. Updates in real-time as player progresses
+### Adjusting View Distance
 
-## 📝 Leaderstats Structure
-
-```
-leaderstats (Folder)
-├── Summit (IntValue) - Total summits completed
-└── Checkpoint (IntValue) - Last checkpoint reached
-```
-
-## 🛡️ Anti-Exploit Features
-
-- **Sequential Validation**: Players cannot skip checkpoints
-- **Touch Cooldown**: Prevents rapid touch spam (0.8s default)
-- **Debounce System**: Per-part touch tracking per player
-- **Self-Healing Logic**: Automatically corrects invalid checkpoint values
-- **Server-Side Authority**: All validation logic runs on the server
-- **Checkpoint Clamping**: Automatically limits checkpoint value to maximum available
-
-## 🐛 Debug Mode
-
-Enable debug logging in Studio:
 ```lua
-DEBUG_LOG = RunService:IsStudio()
+mainGui.MaxDistance = 50  -- Default: 50 studs
+-- Options: 35 (close), 50 (optimal), 100 (far), math.huge (infinite)
 ```
 
-Debug messages include:
-- ✓/✗ Checkpoint validation results
-- 🏆 Summit completion logs
-- ↺ Player respawn notifications
-- Player state synchronization
-- Checkpoint clamping operations
+### Customizing Role Colors
+
+```lua
+local ROLE_BRACKET_COLORS = {
+    Owner = Color3.fromRGB(255, 215, 0),      -- Gold
+    Developer = Color3.fromRGB(0, 200, 255),  -- Cyan
+    HeadAdmin = Color3.fromRGB(220, 20, 60),  -- Crimson
+    Admin = Color3.fromRGB(50, 205, 50),      -- Lime Green
+    Mod = Color3.fromRGB(255, 140, 0)         -- Dark Orange
+}
+```
+
+### Adding New Roles
+
+```lua
+-- 1. Add to ROLES table
+local ROLES = {
+    YourNewRole = {
+        ["Username1"] = true
+    }
+}
+
+-- 2. Add emoji (optional)
+local ROLE_EMOJI = {
+    YourNewRole = "🎯"
+}
+
+-- 3. Add bracket color (optional)
+local ROLE_BRACKET_COLORS = {
+    YourNewRole = Color3.fromRGB(255, 0, 255)
+}
+```
 
 ## 📋 Requirements
 
-- Roblox Studio
-- DataStoreService enabled in game settings
-- Properly configured checkpoint and summit parts in Workspace
-- Parts must be `BasePart` instances (Part, MeshPart, UnionOperation, etc.)
+- **Roblox Studio** or **Roblox Game**
+- **LocalScript** placement (StarterPlayerScripts or StarterGui)
+- **Leaderstats** with `Summit` IntValue for rank system
 
-## 🔄 Version History
+### Required Player Data Structure
 
-- **v2.1** (PlayerDisplayClient) - Optimized & clean implementation with improved layout
-- **v4** (StatsCore) - Sequential checkpoint system with self-healing and respawn support
+```lua
+Player
+└── leaderstats (Folder)
+    └── Summit (IntValue)
+```
 
-## 👤 Author
+## 🐛 Troubleshooting
 
-**Custom by ItoRenz00**
+### Custom Title Not Showing?
 
-## 📄 License
+1. ✅ Check username spelling (case-sensitive)
+2. ✅ Ensure player is added to a ROLE
+3. ✅ Add to CUSTOM_TITLES table
+4. ✅ Add to CUSTOM_COLOR_TYPES table
+5. ✅ Player must reset/respawn
 
-Free to use and modify for your Roblox games. Credit appreciated but not required.
+### Display Not Appearing?
+
+1. ✅ Verify script location (StarterPlayerScripts)
+2. ✅ Check console for errors (F9)
+3. ✅ Ensure leaderstats/Summit exists
+4. ✅ Wait 5-10 seconds after spawn
+
+### Colors Not Animating?
+
+1. ✅ Check CUSTOM_COLOR_TYPES table
+2. ✅ Verify color type name spelling
+3. ✅ Ensure custom title exists
 
 ## 🤝 Contributing
 
-Feel free to submit issues, fork the repository, and create pull requests for any improvements.
+Contributions are welcome! Please:
 
-## ⚠️ Important Notes
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-1. **DataStore Key**: Uses `SummitStore_V4` - change version suffix if migrating from older systems
-2. **Folder Names**: Supports both "CheckPoint" and "Checkpoint" naming conventions
-3. **Part Naming**: Checkpoints must include numbers in their name or parent name (e.g., `CP_1`, `Checkpoint 2`, `CP-3`)
-4. **Performance**: Optimized for large player counts with debounce and cooldown systems
-5. **Character Respawn**: Uses `HumanoidRootPart` touch detection as fallback for reliable checkpoint detection
-6. **Coalescing**: Automatically merges duplicate leaderstats values on player join
+## 📝 Changelog
 
-## 🎯 Best Practices
+### Version 2.2 (Current)
+- ✅ Enhanced multi-user support for custom titles
+- ✅ Expanded color animation options
+- ✅ Improved verified user system
+- ✅ Optimized display distance (50 studs)
+- ✅ Separated owner rainbow effects
+- ✅ Added 10+ example configurations
 
-1. **Checkpoint Naming**: Use consistent naming like `CP_1`, `CP_2`, etc.
-2. **Part Size**: Make checkpoint parts large enough to be easily touched
-3. **CanTouch Property**: Automatically enabled by the script
-4. **Testing**: Test in Studio with debug mode enabled first
-5. **DataStore**: Ensure API services are enabled in Game Settings
+### Version 2.1
+- ✅ Initial release with role system
+- ✅ Dynamic rank progression
+- ✅ Animated color effects
+- ✅ Premium and verified support
 
-## 📞 Support
+## 📄 License
 
-For issues or questions:
-- Check the debug console in Studio (press F9)
-- Verify folder and part naming conventions
-- Ensure DataStoreService is enabled in game settings
-- Check that parts have `CanTouch` enabled
-- Verify checkpoint parts contain sequential numbers
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🎮 Example Setup
+## 👤 Author
 
-```
-Workspace/
-├── CheckPoint/
-│   ├── CP_1 (BasePart)
-│   ├── CP_2 (BasePart)
-│   ├── CP_3 (BasePart)
-│   └── ... (more checkpoints)
-└── Summit/
-    └── SummitPart (BasePart)
+**ItoRenz00**
 
-ServerScriptService/
-└── StatsCore.server.lua
+- Custom Roblox Display System
+- Version 2.2 - Optimized & Enhanced
 
-StarterPlayer/
-└── StarterPlayerScripts/
-    └── PlayerDisplayClient.lua
-```
+## 🌟 Support
 
-## 🔍 Troubleshooting
+If you find this helpful, please:
+- ⭐ Star this repository
+- 🐛 Report bugs via Issues
+- 💡 Suggest features
+- 🔄 Share with others
 
-**Problem**: Checkpoints not registering
-- Ensure parts are named with numbers (CP_1, Checkpoint 2, etc.)
-- Check that `CanTouch` is true on parts
-- Verify parts are descendants of CheckPoint/Checkpoint folder
+## 📞 Contact
 
-**Problem**: Players can skip checkpoints
-- This should be impossible with the sequential system
-- Check server console for validation messages
-- Ensure only one StatsCore script is running
-
-**Problem**: Progress not saving
-- Enable DataStoreService in Game Settings > Security
-- Check for DataStore errors in server console
-- Verify game is published (DataStore requires published games)
-
-**Problem**: Display not showing
-- Ensure PlayerDisplayClient is in correct location
-- Check for script errors in client console (F9)
-- Verify leaderstats folder exists on player
+For questions or support:
+- Create an issue on GitHub
+- Contact via Roblox: [[ItoRenz00](https://www.roblox.com/users/7976793837/profile)]
+- Contact via Github: [[ItoRenz](https://github.com/ItoRenz))]
 
 ---
 
-**Made with ❤️ for the Roblox development community**
+**Made with ❤️ for the Roblox Community**
