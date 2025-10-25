@@ -1,0 +1,632 @@
+-- ========================================
+-- StatsCore.server.lua (ServerScript)
+-- Custom by ItoRenz00
+-- ========================================
+-- Features:
+-- - Leaderstats + DataStore persistence
+-- - Sequential checkpoint system (anti-skip)
+-- - Summit tracking
+-- - Self-healing checkpoint validation
+-- - Automatic respawn to last checkpoint
+-- - Multiple folder name support (CheckPoint/Checkpoint)
+-- ========================================
+
+local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+print("========================================")
+print("StatsCore SERVER LOADED")
+print("Custom by ItoRenz00")
+print("========================================")
+
+-- ========================================
+-- CONFIGURATION
+-- ========================================
+
+local CONFIG = {
+	SUMMIT_FOLDER_NAME = "Summit",        -- Folder containing summit parts
+	TOUCH_COOLDOWN_SEC = 0.8,             -- Touch cooldown to prevent spam
+	RESPAWN_TO_LAST_CP = true,            -- Respawn player to last checkpoint
+	TELEPORT_OFFSET = Vector3.new(0, 3, 0), -- Offset when teleporting to checkpoint
+	DEBUG_LOG = RunService:IsStudio()     -- Enable debug logging in Studio
+}
+
+-- Debug print function
+local function dprint(...)
+	if CONFIG.DEBUG_LOG then
+		print("[StatsCore]", ...)
+	end
+end
+
+-- ========================================
+-- DATASTORE SETUP
+-- ========================================
+
+local SummitStore = DataStoreService:GetDataStore("SummitStore_V4")
+
+-- ========================================
+-- UTILITY FUNCTIONS
+-- ========================================
+
+-- Coalesce function: merge duplicate IntValues into one canonical name
+local function coalesce(ls: Instance, canonical: string, aliases: {string})
+	local keeper = ls:FindFirstChild(canonical)
+	local dupes = {}
+
+	-- Find all aliases
+	for _, alias in ipairs(aliases or {}) do
+		local v = ls:FindFirstChild(alias)
+		if v and v:IsA("IntValue") then
+			table.insert(dupes, v)
+		end
+	end
+
+	-- Create keeper if it doesn't exist
+	if not keeper then
+		if #dupes > 0 then
+			keeper = dupes[1]
+		else
+			keeper = Instance.new("IntValue")
+			keeper.Name = canonical
+			keeper.Value = 0
+			keeper.Parent = ls
+		end
+	end
+
+	-- Merge duplicates into keeper
+	for _, iv in ipairs(dupes) do
+		if iv ~= keeper then
+			if iv.Value > keeper.Value then
+				keeper.Value = iv.Value
+			end
+			iv:Destroy()
+		end
+	end
+
+	keeper.Name = canonical
+	return keeper
+end
+
+-- Parse checkpoint index from name (supports various formats)
+local function parseCpIndex(name: string?): number?
+	if not name then
+		return nil
+	end
+	
+	local n = string.lower(name)
+	local idx = n:match("^cp%s*[_%-]?%s*(%d+)$")
+		or n:match("^checkpoint%s*[_%-]?%s*(%d+)$")
+		or n:match("(%d+)$") -- Fallback: number at the end
+		
+	return idx and tonumber(idx) or nil
+end
+
+-- Get player from hit part
+local function getPlayerFromHit(hit: BasePart?)
+	if not hit then
+		return nil
+	end
+	
+	local char = hit:FindFirstAncestorOfClass("Model")
+	if not char then
+		return nil
+	end
+	
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if not hum then
+		return nil
+	end
+	
+	return Players:GetPlayerFromCharacter(char), char
+end
+
+-- ========================================
+-- PLAYER STATE MANAGEMENT
+-- ========================================
+
+-- runState[player] = {active=bool, nextIdx=number, debounce={[Instance]=number}}
+local runState: {[Player]: {active: boolean, nextIdx: number, debounce: {[Instance]: number}}} = {}
+
+-- Ensure state exists for player
+local function ensureState(p: Player)
+	runState[p] = runState[p] or {
+		active = false,
+		nextIdx = 1,
+		debounce = {}
+	}
+	return runState[p]
+end
+
+-- Clear player state
+local function clearState(p: Player)
+	runState[p] = {
+		active = false,
+		nextIdx = 1,
+		debounce = {}
+	}
+end
+
+-- Check if player can touch (cooldown check)
+local function canTouch(p: Player, key: Instance, cooldown: number)
+	local st = ensureState(p)
+	local now = os.clock()
+	local last = st.debounce[key] or 0
+
+	if now - last < (cooldown or CONFIG.TOUCH_COOLDOWN_SEC) then
+		return false
+	end
+
+	st.debounce[key] = now
+	return true
+end
+
+-- ========================================
+-- CHECKPOINT & SUMMIT REGISTRATION
+-- ========================================
+
+-- Weak tables to store part indices
+local cpIndexByPart = setmetatable({}, {__mode = "k"}) :: {[Instance]: number}
+local isSummitPartByPart = setmetatable({}, {__mode = "k"}) :: {[Instance]: boolean}
+
+-- Debounce for mass resync
+local lastResyncAt = 0
+
+-- Resync all players after checkpoint registration
+local function resyncAllPlayersDebounced()
+	local now = os.clock()
+	if now - lastResyncAt < 0.5 then
+		return
+	end
+	lastResyncAt = now
+
+	task.defer(function()
+		for _, p in ipairs(Players:GetPlayers()) do
+			local st = ensureState(p)
+			local ls = p:FindFirstChild("leaderstats")
+			local cp = ls and ls:FindFirstChild("Checkpoint")
+			local v = (cp and cp:IsA("IntValue")) and cp.Value or 0
+			
+			st.active = (v > 0)
+			st.nextIdx = math.max(1, v + 1)
+		end
+	end)
+end
+
+-- Register checkpoint part
+local function registerCheckpointPart(part: BasePart)
+	pcall(function()
+		part.CanTouch = true
+	end)
+
+	-- Get index from part name or parent name
+	local idx = parseCpIndex(part.Name)
+	if not idx and part.Parent then
+		idx = parseCpIndex(part.Parent.Name)
+	end
+	
+	cpIndexByPart[part] = idx
+
+	-- Mark parent too for HRP fallback
+	if part.Parent and idx and cpIndexByPart[part.Parent] == nil then
+		cpIndexByPart[part.Parent] = idx
+	end
+
+	resyncAllPlayersDebounced()
+end
+
+-- Register summit part
+local function registerSummitPart(part: BasePart)
+	pcall(function()
+		part.CanTouch = true
+	end)
+
+	isSummitPartByPart[part] = true
+	
+	if part.Parent and isSummitPartByPart[part.Parent] == nil then
+		isSummitPartByPart[part.Parent] = true
+	end
+
+	resyncAllPlayersDebounced()
+end
+
+-- Get maximum checkpoint index
+local function getMaxCpIndex(): number
+	local max = 0
+	for inst, idx in pairs(cpIndexByPart) do
+		if typeof(inst) == "Instance" and idx and idx > max then
+			max = idx
+		end
+	end
+	return max
+end
+
+-- ========================================
+-- CHECKPOINT & SUMMIT LOGIC
+-- ========================================
+
+-- Handle checkpoint touch with sequential validation
+local function handleCheckpointHit(player: Player, idx: number, key: Instance)
+	if not idx then
+		return
+	end
+	
+	if not canTouch(player, key, CONFIG.TOUCH_COOLDOWN_SEC) then
+		return
+	end
+
+	local ls = player:FindFirstChild("leaderstats")
+	if not ls then
+		return
+	end
+
+	local cpVal = ls:FindFirstChild("Checkpoint")
+	if not (cpVal and cpVal:IsA("IntValue")) then
+		return
+	end
+
+	-- Self-healing: only accept sequential checkpoint
+	local need = cpVal.Value + 1
+	if idx == need then
+		cpVal.Value = idx
+		local st = ensureState(player)
+		st.active = true
+		st.nextIdx = idx + 1
+		
+		dprint(("✓ CP %d reached by %s (needed=%d)"):format(idx, player.Name, need))
+	else
+		dprint(("✗ CP %d skipped by %s (needed=%d)"):format(idx, player.Name, need))
+	end
+end
+
+-- Handle summit touch
+local function handleSummitHit(player: Player, key: Instance)
+	if not canTouch(player, key, 1.0) then
+		return
+	end
+
+	local ls = player:FindFirstChild("leaderstats")
+	if not ls then
+		return
+	end
+
+	local summit = ls:FindFirstChild("Summit")
+	local cp = ls:FindFirstChild("Checkpoint")
+	
+	if not (summit and cp and summit:IsA("IntValue") and cp:IsA("IntValue")) then
+		return
+	end
+
+	local maxIdx = getMaxCpIndex()
+	if maxIdx <= 0 then
+		return
+	end
+
+	-- Clamp checkpoint if it exceeds available checkpoints
+	if cp.Value > maxIdx then
+		dprint(("Clamp CP %s from %d -> %d"):format(player.Name, cp.Value, maxIdx))
+		cp.Value = maxIdx
+	end
+
+	-- Allow summit only if all checkpoints are completed sequentially
+	if cp.Value == maxIdx then
+		summit.Value += 1
+		cp.Value = 0
+
+		local st = ensureState(player)
+		st.active = false
+		st.nextIdx = 1
+		st.debounce = {}
+
+		dprint(("🏆 SUMMIT! %s (Total: %d)"):format(player.Name, summit.Value))
+	else
+		dprint(("✗ Summit failed for %s (cp=%d, need=%d)"):format(player.Name, cp.Value, maxIdx))
+	end
+end
+
+-- ========================================
+-- PART HOOKING
+-- ========================================
+
+-- Hook checkpoint part touched event
+local function hookCheckpointPart(part: BasePart)
+	if not part:IsA("BasePart") or part:GetAttribute("CPHooked") then
+		return
+	end
+	
+	part:SetAttribute("CPHooked", true)
+	registerCheckpointPart(part)
+
+	part.Touched:Connect(function(hit)
+		local player = getPlayerFromHit(hit)
+		if not player then
+			return
+		end
+		
+		local idx = parseCpIndex(part.Name) or (part.Parent and parseCpIndex(part.Parent.Name))
+		handleCheckpointHit(player, idx, part)
+	end)
+end
+
+-- Hook summit part touched event
+local function hookSummitPart(part: BasePart)
+	if not part:IsA("BasePart") or part:GetAttribute("SummitHooked") then
+		return
+	end
+	
+	part:SetAttribute("SummitHooked", true)
+	registerSummitPart(part)
+
+	part.Touched:Connect(function(hit)
+		local player = getPlayerFromHit(hit)
+		if not player then
+			return
+		end
+		
+		handleSummitHit(player, part)
+	end)
+end
+
+-- Hook HumanoidRootPart as fallback detector
+local function hookCharacterTouchers(p: Player, char: Model)
+	local hrp = char:WaitForChild("HumanoidRootPart", 10)
+	if not hrp then
+		return
+	end
+
+	pcall(function()
+		hrp.CanTouch = true
+	end)
+
+	hrp.Touched:Connect(function(hit)
+		if not hit or not hit:IsA("BasePart") then
+			return
+		end
+
+		local inst = hit
+		local idx, isSummit
+
+		-- Traverse up the hierarchy to find registered checkpoint/summit
+		while inst and inst ~= Workspace do
+			idx = cpIndexByPart[inst]
+			isSummit = isSummitPartByPart[inst]
+			
+			if idx or isSummit then
+				break
+			end
+			
+			inst = inst.Parent
+		end
+
+		if idx then
+			handleCheckpointHit(p, idx, inst or hit)
+		elseif isSummit then
+			handleSummitHit(p, inst or hit)
+		end
+	end)
+end
+
+-- ========================================
+-- FOLDER SCANNING & INITIALIZATION
+-- ========================================
+
+-- Scan folder and register all parts
+local function scanFolder(name: string, callback)
+	local folder = Workspace:FindFirstChild(name)
+	if not folder then
+		dprint(("⚠ Workspace/%s not found"):format(name))
+		return
+	end
+
+	-- Hook the container itself if it's a BasePart
+	if folder:IsA("BasePart") then
+		callback(folder)
+	end
+
+	-- Hook all descendant parts
+	for _, descendant in ipairs(folder:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			callback(descendant)
+		end
+	end
+
+	-- Watch for new parts added
+	folder.DescendantAdded:Connect(function(descendant)
+		if descendant:IsA("BasePart") then
+			callback(descendant)
+		end
+	end)
+end
+
+-- Initialize checkpoint and summit folders
+scanFolder("CheckPoint", hookCheckpointPart)
+scanFolder("Checkpoint", hookCheckpointPart)
+scanFolder(CONFIG.SUMMIT_FOLDER_NAME, hookSummitPart)
+
+-- ========================================
+-- RESPAWN TO CHECKPOINT
+-- ========================================
+
+-- Get CFrame of checkpoint by index
+local function getCpCFrame(index: number): CFrame?
+	if not index or index <= 0 then
+		return nil
+	end
+
+	for inst, idx in pairs(cpIndexByPart) do
+		if typeof(inst) == "Instance" and idx == index and inst:IsA("BasePart") then
+			return inst.CFrame
+		end
+	end
+
+	return nil
+end
+
+-- Handle character added
+local function onCharacterAdded(p: Player, char: Model)
+	ensureState(p)
+	hookCharacterTouchers(p, char)
+
+	-- Sync state from leaderstats on spawn
+	local st = ensureState(p)
+	local ls = p:FindFirstChild("leaderstats")
+	local cpv = ls and ls:FindFirstChild("Checkpoint")
+	local v = (cpv and cpv:IsA("IntValue")) and cpv.Value or 0
+	
+	st.active = (v > 0)
+	st.nextIdx = math.max(1, v + 1)
+
+	-- Respawn to last checkpoint if enabled
+	if not CONFIG.RESPAWN_TO_LAST_CP then
+		return
+	end
+	
+	if not (cpv and cpv.Value > 0) then
+		return
+	end
+
+	local cf = getCpCFrame(cpv.Value)
+	if cf then
+		task.defer(function()
+			local root = char:WaitForChild("HumanoidRootPart", 10)
+			if root then
+				char:PivotTo(cf + CONFIG.TELEPORT_OFFSET)
+				dprint(("↺ Respawned %s to CP %d"):format(p.Name, cpv.Value))
+			end
+		end)
+	end
+end
+
+-- ========================================
+-- LEADERSTATS & DATASTORE
+-- ========================================
+
+-- Setup leaderstats for player
+local function setupLeaderstats(plr: Player)
+	local ls = plr:FindFirstChild("leaderstats")
+	if not ls then
+		ls = Instance.new("Folder")
+		ls.Name = "leaderstats"
+		ls.Parent = plr
+	end
+
+	-- Coalesce Summit and Checkpoint values
+	local summit = coalesce(ls, "Summit", {"summit", "SUMMIT"})
+	local checkpoint = coalesce(ls, "Checkpoint", {"CheckPoint", "checkpoint", "CHECKPOINT"})
+
+	-- Load data from DataStore
+	task.spawn(function()
+		local ok, saved = pcall(function()
+			return SummitStore:GetAsync(("U_%d"):format(plr.UserId))
+		end)
+
+		if ok and typeof(saved) == "table" then
+			if tonumber(saved.summit) then
+				summit.Value = tonumber(saved.summit)
+			end
+			if tonumber(saved.checkpoint) then
+				checkpoint.Value = tonumber(saved.checkpoint)
+			end
+		elseif ok and typeof(saved) == "number" then
+			-- Legacy format support
+			summit.Value = saved
+		end
+
+		-- Clamp checkpoint to max available
+		local mx = getMaxCpIndex()
+		if mx > 0 and checkpoint.Value > mx then
+			dprint(("Clamp CP on load %s: %d -> %d"):format(plr.Name, checkpoint.Value, mx))
+			checkpoint.Value = mx
+		end
+
+		-- Sync state after loading
+		task.defer(function()
+			local st = ensureState(plr)
+			local v = checkpoint.Value
+			st.active = (v > 0)
+			st.nextIdx = math.max(1, v + 1)
+		end)
+	end)
+
+	-- Auto-save function
+	local function save()
+		task.spawn(function()
+			pcall(function()
+				SummitStore:SetAsync(
+					("U_%d"):format(plr.UserId),
+					{
+						summit = summit.Value,
+						checkpoint = checkpoint.Value,
+					}
+				)
+			end)
+		end)
+	end
+
+	-- Save on value changes
+	summit:GetPropertyChangedSignal("Value"):Connect(save)
+	checkpoint:GetPropertyChangedSignal("Value"):Connect(save)
+
+	-- Sync state when checkpoint changes
+	checkpoint:GetPropertyChangedSignal("Value"):Connect(function()
+		local st = ensureState(plr)
+		local v = checkpoint.Value
+		st.active = (v > 0)
+		st.nextIdx = math.max(1, v + 1)
+	end)
+end
+
+-- ========================================
+-- PLAYER EVENT HANDLERS
+-- ========================================
+
+-- Handle player added
+Players.PlayerAdded:Connect(function(p)
+	setupLeaderstats(p)
+	
+	p.CharacterAdded:Connect(function(char)
+		onCharacterAdded(p, char)
+	end)
+	
+	if p.Character then
+		onCharacterAdded(p, p.Character)
+	end
+end)
+
+-- Setup for existing players
+for _, p in ipairs(Players:GetPlayers()) do
+	setupLeaderstats(p)
+	
+	p.CharacterAdded:Connect(function(char)
+		onCharacterAdded(p, char)
+	end)
+	
+	if p.Character then
+		onCharacterAdded(p, p.Character)
+	end
+end
+
+-- Handle player removing
+Players.PlayerRemoving:Connect(function(plr)
+	local ls = plr:FindFirstChild("leaderstats")
+	local s = ls and ls:FindFirstChild("Summit")
+	local c = ls and ls:FindFirstChild("Checkpoint")
+
+	-- Final save before player leaves
+	pcall(function()
+		SummitStore:SetAsync(
+			("U_%d"):format(plr.UserId),
+			{
+				summit = s and s.Value or 0,
+				checkpoint = c and c.Value or 0,
+			}
+		)
+	end)
+
+	runState[plr] = nil
+end)
+
+print("StatsCore initialized successfully!")
+print("Custom by ItoRenz00")
