@@ -1,7 +1,7 @@
 -- ========================================
 -- PlayerDisplayClient.lua (LocalScript)
 -- Custom by ItoRenz00
--- Version 2.1 - Optimized & Clean
+-- Version 2.2 - Enhanced Custom Titles
 -- ========================================
 -- Place in: StarterPlayer > StarterPlayerScripts or StarterGui
 -- ========================================
@@ -10,7 +10,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 print("========================================")
-print("PlayerDisplayClient LOADED - VERSION 2.1")
+print("PlayerDisplayClient LOADED - VERSION 2.2")
 print("Custom by ItoRenz00")
 print("========================================")
 
@@ -21,6 +21,8 @@ print("========================================")
 -- Verified Users List
 local VerifiedUsersList = {
 	["ItoRenz00"] = true,
+	["Player1"] = true,
+	["Player2"] = true,
 }
 
 -- Roles System
@@ -30,26 +32,32 @@ local ROLES = {
 		["username2"] = true
 	},
 	Developer = { 
-		["ItoRenz00"] = true
+		["ItoRenz00"] = true,
+		["DevPlayer1"] = true,
+		["DevPlayer2"] = true
 	},
 	HeadAdmin = { 
-		["username"] = true
+		["AdminHead1"] = true,
+		["AdminHead2"] = true
 	},
 	Admin = {
-		["username"] = true,
-		["username2"] = true
+		["Admin1"] = true,
+		["Admin2"] = true,
+		["Admin3"] = true
 	},
 	Mod = {
-		["username"] = true,
-		["username2"] = true
+		["Mod1"] = true,
+		["Mod2"] = true,
+		["Mod3"] = true
 	},
 	Cheater = {
-		["username"] = true,
-		["username2"] = true
+		["Cheater1"] = true,
+		["Cheater2"] = true
 	},
 	Helper = {
-		["username"] = true,
-		["username2"] = true
+		["Helper1"] = true,
+		["Helper2"] = true,
+		["Helper3"] = true
 	}
 }
 
@@ -64,12 +72,29 @@ local ROLE_EMOJI = {
 	Helper = "🩺",
 }
 
--- Custom Titles
+-- Custom Titles (Multi-User Support)
 local CUSTOM_TITLES = {
 	["ItoRenz00"] = "CEO",
+	["Player1"] = "VIP Member",
+	["Player2"] = "Content Creator",
+	["Player3"] = "Veteran",
+	["Player4"] = "Beta Tester",
+	["Player5"] = "Special Guest",
+	["Player6"] = "Legendary Player",
+	["Player7"] = "Pro Climber",
+	["Player8"] = "Mountain Master",
+	["Player9"] = "Elite Champion",
+	["Player10"] = "Top Supporter",
+	["username1"] = "Game Master",
+	["username2"] = "Supreme Leader",
+	["DevPlayer1"] = "Lead Developer",
+	["DevPlayer2"] = "UI Designer",
+	["Admin1"] = "Senior Admin",
+	["Mod1"] = "Community Mod",
+	["Helper1"] = "Support Team",
 }
 
--- Custom Color Types
+-- Custom Color Types (Multi-User Support)
 local CUSTOM_COLOR_TYPES = {
 	["username1"] = "pink_pulse",
 	["username2"] = "rainbow",
@@ -85,9 +110,21 @@ local CUSTOM_COLOR_TYPES = {
 	["username12"] = "random_rgb_new_4",
 	["username13"] = "random_rgb_new_5",
 	["ItoRenz00"] = "random_rgb_new_6",
-	["username14"] = "owner_rainbow",
-	["username15"] = "owner_rainbow",   
-	["username16"] = "owner_rainbow"   
+	["Player1"] = "rainbow",
+	["Player2"] = "purple_galaxy",
+	["Player3"] = "blue_rgb",
+	["Player4"] = "red_rgb",
+	["Player5"] = "pink_pulse",
+	["Player6"] = "random_rgb_new_1",
+	["Player7"] = "random_rgb_new_2",
+	["Player8"] = "random_rgb_new_3",
+	["Player9"] = "random_rgb_new_4",
+	["Player10"] = "random_rgb_new_5",
+	
+	-- Owner Rainbow (Special Effect for Owners Only)
+	["OwnerUsername1"] = "owner_rainbow",
+	["OwnerUsername2"] = "owner_rainbow",   
+	["OwnerUsername3"] = "owner_rainbow",
 }
 
 -- Role Bracket Colors
@@ -97,7 +134,8 @@ local ROLE_BRACKET_COLORS = {
 	HeadAdmin = Color3.fromRGB(220, 20, 60),
 	Admin = Color3.fromRGB(50, 205, 50),
 	Mod = Color3.fromRGB(255, 140, 0),
-	Cheater = Color3.fromRGB(128, 0, 0)
+	Cheater = Color3.fromRGB(128, 0, 0),
+	Helper = Color3.fromRGB(100, 149, 237)
 }
 
 -- ========================================
@@ -378,7 +416,7 @@ local function createMinimalistDisplay(player, head, summit)
 	mainGui.Size = UDim2.new(0, 280, 0, 75)
 	mainGui.StudsOffset = Vector3.new(0, 3.5, 0)
 	mainGui.AlwaysOnTop = true
-	mainGui.MaxDistance = 35
+	mainGui.MaxDistance = 50  -- Optimal distance for title visibility
 	mainGui.Parent = head
 
 	-- Container Frame
@@ -584,3 +622,4 @@ Players.PlayerAdded:Connect(setupPlayerDisplay)
 
 print("PlayerDisplayClient initialized successfully!")
 print("Custom by ItoRenz00")
+print("Version 2.2 - Enhanced Multi-User Support")
