@@ -1,31 +1,25 @@
 -- ========================================
 -- PlayerDisplayClient.lua (LocalScript)
 -- Custom by ItoRenz00
--- Version 2.2 - Enhanced Custom Titles
+-- Version 2.3 - Avatar Change Compatible
 -- ========================================
 -- Place in: StarterPlayer > StarterPlayerScripts or StarterGui
 -- ========================================
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
-
-print("========================================")
-print("PlayerDisplayClient LOADED - VERSION 2.2")
-print("Custom by ItoRenz00")
-print("========================================")
 
 -- ========================================
 -- CONFIGURATION
 -- ========================================
 
--- Verified Users List
 local VerifiedUsersList = {
 	["ItoRenz00"] = true,
 	["Player1"] = true,
 	["Player2"] = true,
 }
 
--- Roles System
 local ROLES = {
 	Owner = {
 		["username1"] = true,
@@ -61,7 +55,6 @@ local ROLES = {
 	}
 }
 
--- Role Emojis
 local ROLE_EMOJI = {
 	Owner = "👑",
 	Developer = "💻",
@@ -72,7 +65,6 @@ local ROLE_EMOJI = {
 	Helper = "🩺",
 }
 
--- Custom Titles (Multi-User Support)
 local CUSTOM_TITLES = {
 	["ItoRenz00"] = "CEO",
 	["Player1"] = "VIP Member",
@@ -94,7 +86,6 @@ local CUSTOM_TITLES = {
 	["Helper1"] = "Support Team",
 }
 
--- Custom Color Types (Multi-User Support)
 local CUSTOM_COLOR_TYPES = {
 	["username1"] = "pink_pulse",
 	["username2"] = "rainbow",
@@ -120,14 +111,11 @@ local CUSTOM_COLOR_TYPES = {
 	["Player8"] = "random_rgb_new_3",
 	["Player9"] = "random_rgb_new_4",
 	["Player10"] = "random_rgb_new_5",
-	
-	-- Owner Rainbow (Special Effect for Owners Only)
 	["OwnerUsername1"] = "owner_rainbow",
 	["OwnerUsername2"] = "owner_rainbow",   
 	["OwnerUsername3"] = "owner_rainbow",
 }
 
--- Role Bracket Colors
 local ROLE_BRACKET_COLORS = {
 	Owner = Color3.fromRGB(255, 215, 0),
 	Developer = Color3.fromRGB(0, 200, 255), 
@@ -142,7 +130,6 @@ local ROLE_BRACKET_COLORS = {
 -- UTILITY FUNCTIONS
 -- ========================================
 
--- Get player role
 local function getPlayerRole(username)
 	for role, users in pairs(ROLES) do
 		if users[username] then 
@@ -152,7 +139,6 @@ local function getPlayerRole(username)
 	return nil
 end
 
--- Get animated color based on color type
 local function getAnimatedColor(colorType, time)
 	local t = time or tick()
 
@@ -317,7 +303,6 @@ local function getAnimatedColor(colorType, time)
 	end
 end
 
--- Get rank title and color based on summit count
 local function getRank(summit)
 	if summit < 0 then
 		return "❓ Summit Tidak Dikenal", Color3.fromRGB(128, 128, 128)
@@ -362,7 +347,6 @@ local function getRank(summit)
 	end
 end
 
--- Create a text label helper
 local function createLabel(parent, props)
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
@@ -388,7 +372,6 @@ end
 -- ========================================
 
 local function createMinimalistDisplay(player, head, summit)
-	-- Remove old GUI and disable default name tag
 	for _, gui in ipairs(head:GetChildren()) do
 		if gui:IsA("BillboardGui") then
 			gui:Destroy()
@@ -402,32 +385,26 @@ local function createMinimalistDisplay(player, head, summit)
 		end
 	end
 
-	-- Get player info
 	local role = getPlayerRole(player.Name)
 	local customTitle = CUSTOM_TITLES[player.Name]
 	local colorType = CUSTOM_COLOR_TYPES[player.Name]
 	local isVerified = VerifiedUsersList[player.Name]
 	local isPremium = player.MembershipType == Enum.MembershipType.Premium
 
-	-- Create main GUI
 	local mainGui = Instance.new("BillboardGui")
 	mainGui.Name = "MainDisplay"
 	mainGui.Adornee = head
 	mainGui.Size = UDim2.new(0, 280, 0, 75)
 	mainGui.StudsOffset = Vector3.new(0, 3.5, 0)
 	mainGui.AlwaysOnTop = true
-	mainGui.MaxDistance = 50  -- Optimal distance for title visibility
+	mainGui.MaxDistance = 50
 	mainGui.Parent = head
 
-	-- Container Frame
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(1, 0, 1, 0)
 	container.BackgroundTransparency = 1
 	container.Parent = mainGui
 
-	-- ========================================
-	-- LINE 1: Role + Custom Title
-	-- ========================================
 	if role then
 		local roleContainer = Instance.new("Frame")
 		roleContainer.Name = "RoleContainer"
@@ -437,7 +414,6 @@ local function createMinimalistDisplay(player, head, summit)
 		roleContainer.Parent = container
 
 		if customTitle and colorType then
-			-- Create layout for centered role + title
 			local listLayout = Instance.new("UIListLayout")
 			listLayout.FillDirection = Enum.FillDirection.Horizontal
 			listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -446,7 +422,6 @@ local function createMinimalistDisplay(player, head, summit)
 			listLayout.Padding = UDim.new(0, 5)
 			listLayout.Parent = roleContainer
 
-			-- Role label
 			local roleLabel = createLabel(roleContainer, {
 				Size = UDim2.new(0, 0, 1, 0),
 				AutomaticSize = Enum.AutomaticSize.X,
@@ -455,7 +430,6 @@ local function createMinimalistDisplay(player, head, summit)
 				Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
 			})
 
-			-- Custom title label
 			local titleLabel = createLabel(roleContainer, {
 				Size = UDim2.new(0, 0, 1, 0),
 				AutomaticSize = Enum.AutomaticSize.X,
@@ -463,7 +437,6 @@ local function createMinimalistDisplay(player, head, summit)
 				Text = customTitle
 			})
 
-			-- Animate custom title color
 			spawn(function()
 				while titleLabel and titleLabel.Parent do
 					local currentTime = tick()
@@ -474,7 +447,6 @@ local function createMinimalistDisplay(player, head, summit)
 			end)
 
 		elseif colorType == "owner_rainbow" then
-			-- Owner rainbow animation
 			local roleLabel = createLabel(roleContainer, {
 				Text = "[" .. role .. "👑]"
 			})
@@ -489,7 +461,6 @@ local function createMinimalistDisplay(player, head, summit)
 			end)
 
 		else
-			-- Static role display
 			createLabel(roleContainer, {
 				TextColor3 = ROLE_BRACKET_COLORS[role] or Color3.new(1, 1, 1),
 				Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
@@ -497,9 +468,6 @@ local function createMinimalistDisplay(player, head, summit)
 		end
 	end
 
-	-- ========================================
-	-- LINE 2: Premium Icon + DisplayName + Checkmark
-	-- ========================================
 	local line2Frame = Instance.new("Frame")
 	line2Frame.Name = "NameLineFrame"
 	line2Frame.Size = UDim2.new(1, 0, 0.33, 0)
@@ -507,7 +475,6 @@ local function createMinimalistDisplay(player, head, summit)
 	line2Frame.BackgroundTransparency = 1
 	line2Frame.Parent = container
 
-	-- Create horizontal layout
 	local nameLayout = Instance.new("UIListLayout")
 	nameLayout.FillDirection = Enum.FillDirection.Horizontal
 	nameLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -516,7 +483,6 @@ local function createMinimalistDisplay(player, head, summit)
 	nameLayout.Padding = UDim.new(0, 3)
 	nameLayout.Parent = line2Frame
 
-	-- Premium Icon
 	if isPremium then
 		createLabel(line2Frame, {
 			Size = UDim2.new(0, 0, 1, 0),
@@ -530,7 +496,6 @@ local function createMinimalistDisplay(player, head, summit)
 		})
 	end
 
-	-- Display Name
 	createLabel(line2Frame, {
 		Size = UDim2.new(0, 0, 1, 0),
 		AutomaticSize = Enum.AutomaticSize.X,
@@ -542,7 +507,6 @@ local function createMinimalistDisplay(player, head, summit)
 		Text = player.DisplayName
 	})
 
-	-- Verified Checkmark
 	if isVerified then
 		local checkmarkLabel = createLabel(line2Frame, {
 			Size = UDim2.new(0, 0, 1, 0),
@@ -554,7 +518,6 @@ local function createMinimalistDisplay(player, head, summit)
 			Text = utf8.char(0xE000)
 		})
 
-		-- Animate checkmark color
 		spawn(function()
 			while checkmarkLabel and checkmarkLabel.Parent do
 				local time = (tick() % 4) / 4
@@ -565,9 +528,6 @@ local function createMinimalistDisplay(player, head, summit)
 		end)
 	end
 
-	-- ========================================
-	-- LINE 3: Title + Summit Count
-	-- ========================================
 	local line3 = createLabel(container, {
 		Size = UDim2.new(1, 0, 0.34, 0),
 		Position = UDim2.new(0, 0, role and 0.66 or 0.53, 0),
@@ -612,14 +572,28 @@ local function setupPlayerDisplay(player)
 	player.CharacterAdded:Connect(onCharacterAdded)
 end
 
--- Setup for all existing players
 for _, player in ipairs(Players:GetPlayers()) do
 	setupPlayerDisplay(player)
 end
 
--- Setup for new players
 Players.PlayerAdded:Connect(setupPlayerDisplay)
+
+-- ========================================
+-- NEW: LISTEN FOR AVATAR CHANGE REFRESH
+-- ========================================
+local RefreshTitleEvent = ReplicatedStorage:WaitForChild("RefreshTitle", 10)
+if RefreshTitleEvent then
+	RefreshTitleEvent.OnClientEvent:Connect(function()
+		print("🔄 Title refresh request received!")
+		if LocalPlayer.Character then
+			setupPlayerDisplay(LocalPlayer)
+		end
+	end)
+	print("✅ Title refresh listener active!")
+else
+	warn("⚠️ RefreshTitle RemoteEvent not found!")
+end
 
 print("PlayerDisplayClient initialized successfully!")
 print("Custom by ItoRenz00")
-print("Version 2.2 - Enhanced Multi-User Support")
+print("Version 2.3 - Avatar Change Compatible")
