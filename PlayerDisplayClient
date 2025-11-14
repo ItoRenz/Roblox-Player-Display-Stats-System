@@ -1,7 +1,7 @@
 -- ========================================
 -- PlayerDisplayClient.lua (LocalScript)
 -- Custom by ItoRenz00
--- Version 2.3 - Avatar Change Compatible
+-- Version 2.4 - Avatar Change Compatible (Fixed)
 -- ========================================
 -- Place in: StarterPlayer > StarterPlayerScripts or StarterGui
 -- ========================================
@@ -437,12 +437,12 @@ local function createMinimalistDisplay(player, head, summit)
 				Text = customTitle
 			})
 
-			spawn(function()
+			task.spawn(function()
 				while titleLabel and titleLabel.Parent do
 					local currentTime = tick()
 					local animatedColor = getAnimatedColor(colorType, currentTime)
 					titleLabel.TextColor3 = animatedColor
-					wait(0.1)
+					task.wait(0.1)
 				end
 			end)
 
@@ -451,12 +451,12 @@ local function createMinimalistDisplay(player, head, summit)
 				Text = "[" .. role .. "👑]"
 			})
 
-			spawn(function()
+			task.spawn(function()
 				while roleLabel and roleLabel.Parent do
 					local currentTime = tick()
 					local rainbowColor = getAnimatedColor("owner_rainbow", currentTime)
 					roleLabel.TextColor3 = rainbowColor
-					wait(0.1)
+					task.wait(0.1)
 				end
 			end)
 
@@ -518,12 +518,12 @@ local function createMinimalistDisplay(player, head, summit)
 			Text = utf8.char(0xE000)
 		})
 
-		spawn(function()
+		task.spawn(function()
 			while checkmarkLabel and checkmarkLabel.Parent do
 				local time = (tick() % 4) / 4
 				local rainbowColor = Color3.fromHSV(time, 1, 1)
 				checkmarkLabel.TextColor3 = rainbowColor
-				wait(0.15)
+				task.wait(0.15)
 			end
 		end)
 	end
@@ -544,7 +544,9 @@ local function createMinimalistDisplay(player, head, summit)
 	end
 
 	updateInfoLine(summit.Value)
-	summit.Changed:Connect(updateInfoLine)
+	summit:GetPropertyChangedSignal("Value"):Connect(function()
+		updateInfoLine(summit.Value)
+	end)
 end
 
 -- ========================================
@@ -579,14 +581,39 @@ end
 Players.PlayerAdded:Connect(setupPlayerDisplay)
 
 -- ========================================
--- NEW: LISTEN FOR AVATAR CHANGE REFRESH
+-- AVATAR CHANGE REFRESH (FIXED FOR ALL PLAYERS)
 -- ========================================
 local RefreshTitleEvent = ReplicatedStorage:WaitForChild("RefreshTitle", 10)
 if RefreshTitleEvent then
-	RefreshTitleEvent.OnClientEvent:Connect(function()
-		print("🔄 Title refresh request received!")
-		if LocalPlayer.Character then
-			setupPlayerDisplay(LocalPlayer)
+	RefreshTitleEvent.OnClientEvent:Connect(function(changedPlayerId)
+		print("🔄 Title refresh request received for UserId:", changedPlayerId)
+		
+		-- Cari player yang ganti avatar
+		local changedPlayer = Players:GetPlayerByUserId(changedPlayerId)
+		
+		if changedPlayer and changedPlayer.Character then
+			-- Rebuild title untuk player tersebut
+			local head = changedPlayer.Character:FindFirstChild("Head")
+			if head then
+				-- Hapus old display
+				local oldDisplay = head:FindFirstChild("MainDisplay")
+				if oldDisplay then
+					oldDisplay:Destroy()
+				end
+				
+				-- Wait untuk character appearance update
+				task.wait(0.3)
+				
+				-- Rebuild title
+				local leaderstats = changedPlayer:FindFirstChild("leaderstats")
+				if leaderstats then
+					local summit = leaderstats:FindFirstChild("Summit")
+					if summit then
+						createMinimalistDisplay(changedPlayer, head, summit)
+						print("✅ Title refreshed for:", changedPlayer.Name)
+					end
+				end
+			end
 		end
 	end)
 	print("✅ Title refresh listener active!")
@@ -594,6 +621,8 @@ else
 	warn("⚠️ RefreshTitle RemoteEvent not found!")
 end
 
-print("PlayerDisplayClient initialized successfully!")
+print("========================================")
+print("PlayerDisplayClient initialized!")
 print("Custom by ItoRenz00")
-print("Version 2.3 - Avatar Change Compatible")
+print("Version 2.4 - Avatar Change Compatible")
+print("========================================")
