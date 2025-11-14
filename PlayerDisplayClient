@@ -1,148 +1,219 @@
--- ========================================
--- PlayerDisplayClient.lua (LocalScript)
--- Custom by ItoRenz00
--- Version 2.2 - Enhanced Custom Titles
--- ========================================
+-- ============================================================================
+-- PLAYER DISPLAY CLIENT
+-- Author: ItoRenz00
+-- Version: 1.0
+-- Description: Custom player name display with roles, titles, and ranks
+-- ============================================================================
 -- Place in: StarterPlayer > StarterPlayerScripts or StarterGui
--- ========================================
+-- ============================================================================
+
+-- ============================================================================
+-- SERVICES
+-- ============================================================================
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
 
-print("========================================")
-print("PlayerDisplayClient LOADED - VERSION 2.2")
-print("Custom by ItoRenz00")
-print("========================================")
+-- ============================================================================
+-- ROLE CONFIGURATION
+-- ============================================================================
 
--- ========================================
--- CONFIGURATION
--- ========================================
-
--- Verified Users List
-local VerifiedUsersList = {
-	["ItoRenz00"] = true,
-	["Player1"] = true,
-	["Player2"] = true,
-}
-
--- Roles System
 local ROLES = {
 	Owner = {
-		["username1"] = true,
-		["username2"] = true
+		["ItoRenz00"] = true,
+		["owner_username2"] = true,
+		["owner_username3"] = true,
+		["owner_username4"] = true,
+		["owner_username5"] = true
 	},
 	Developer = { 
-		["ItoRenz00"] = true,
-		["DevPlayer1"] = true,
-		["DevPlayer2"] = true
+		["dev_username1"] = true,
+		["dev_username2"] = true,
+		["dev_username3"] = true,
+		["dev_username4"] = true,
+		["dev_username5"] = true
 	},
 	HeadAdmin = { 
-		["AdminHead1"] = true,
-		["AdminHead2"] = true
+		["headadmin_username1"] = true,
+		["headadmin_username2"] = true,
+		["headadmin_username3"] = true,
+		["headadmin_username4"] = true,
+		["headadmin_username5"] = true
 	},
 	Admin = {
-		["Admin1"] = true,
-		["Admin2"] = true,
-		["Admin3"] = true
+		["admin_username1"] = true,
+		["admin_username2"] = true,
+		["admin_username3"] = true,
+		["admin_username4"] = true,
+		["admin_username5"] = true,
+		["admin_username6"] = true,
+		["admin_username7"] = true,
+		["admin_username8"] = true,
+		["admin_username9"] = true,
+		["admin_username10"] = true
 	},
-	Mod = {
-		["Mod1"] = true,
-		["Mod2"] = true,
-		["Mod3"] = true
+	Streamer = {
+		["streamer_username1"] = true,
+		["streamer_username2"] = true,
+		["streamer_username3"] = true,
+		["streamer_username4"] = true,
+		["streamer_username5"] = true,
+		["streamer_username6"] = true,
+		["streamer_username7"] = true,
+		["streamer_username8"] = true,
+		["streamer_username9"] = true,
+		["streamer_username10"] = true,
+		["streamer_username11"] = true,
+		["streamer_username12"] = true,
+		["streamer_username13"] = true,
+		["streamer_username14"] = true,
+		["streamer_username15"] = true,
+		["streamer_username16"] = true,
+		["streamer_username17"] = true,
+		["streamer_username18"] = true,
+		["streamer_username19"] = true,
+		["streamer_username20"] = true
+	},
+	Top1 = {
+		["top1_username"] = true
+	},
+	Top2 = {
+		["top2_username"] = true
+	},
+	Top3 = {
+		["top3_username"] = true
 	},
 	Cheater = {
-		["Cheater1"] = true,
-		["Cheater2"] = true
+		["cheater_username1"] = true,
+		["cheater_username2"] = true
 	},
 	Helper = {
-		["Helper1"] = true,
-		["Helper2"] = true,
-		["Helper3"] = true
+		["helper_username1"] = true,
+		["helper_username2"] = true
 	}
 }
 
--- Role Emojis
+-- ============================================================================
+-- ROLE EMOJI CONFIGURATION
+-- ============================================================================
+
 local ROLE_EMOJI = {
 	Owner = "👑",
 	Developer = "💻",
 	HeadAdmin = "🛡️",
 	Admin = "🛡️",
-	Mod = "🛡️",
+	Streamer = "📷",
+	Top1 = "🥇",
+	Top2 = "🥈",
+	Top3 = "🥉",
 	Cheater = "👹",
 	Helper = "🩺",
 }
 
--- Custom Titles (Multi-User Support)
+-- ============================================================================
+-- CUSTOM TITLES CONFIGURATION
+-- ============================================================================
+
 local CUSTOM_TITLES = {
-	["ItoRenz00"] = "CEO",
-	["Player1"] = "VIP Member",
-	["Player2"] = "Content Creator",
-	["Player3"] = "Veteran",
-	["Player4"] = "Beta Tester",
-	["Player5"] = "Special Guest",
-	["Player6"] = "Legendary Player",
-	["Player7"] = "Pro Climber",
-	["Player8"] = "Mountain Master",
-	["Player9"] = "Elite Champion",
-	["Player10"] = "Top Supporter",
-	["username1"] = "Game Master",
-	["username2"] = "Supreme Leader",
-	["DevPlayer1"] = "Lead Developer",
-	["DevPlayer2"] = "UI Designer",
-	["Admin1"] = "Senior Admin",
-	["Mod1"] = "Community Mod",
-	["Helper1"] = "Support Team",
+	["ItoRenz00"] = "EMPEROR",
+	["custom_title_username2"] = "Raja Summit",
+	["custom_title_username3"] = "Dewa Pendaki",
+	["custom_title_username4"] = "Master Sejati",
+	["custom_title_username5"] = "Penguasa Gunung",
+	["custom_title_username6"] = "Si Penakluk",
+	["custom_title_username7"] = "Juara Abadi",
+	["custom_title_username8"] = "Petualang Elite",
+	["custom_title_username9"] = "Sang Penjelajah",
+	["custom_title_username10"] = "Raja Ketinggian",
+	["custom_title_username11"] = "Legenda Hidup",
+	["custom_title_username12"] = "Pro Player",
+	["custom_title_username13"] = "God Tier",
+	["custom_title_username14"] = "Unbeatable",
+	["custom_title_username15"] = "Speed Demon",
+	["custom_title_username16"] = "Elite Climber",
+	["custom_title_username17"] = "Summit King",
+	["custom_title_username18"] = "Mountain Boss",
+	["custom_title_username19"] = "Legend Maker",
+	["custom_title_username20"] = "Ultimate Pro"
 }
 
--- Custom Color Types (Multi-User Support)
+-- ============================================================================
+-- CUSTOM COLOR TYPES CONFIGURATION
+-- ============================================================================
+
 local CUSTOM_COLOR_TYPES = {
-	["username1"] = "pink_pulse",
-	["username2"] = "rainbow",
-	["username3"] = "purple_galaxy",
-	["username4"] = "random_rgb_new_1",
-	["username5"] = "random_rgb_new_2",
-	["username6"] = "blue_rgb",
-	["username7"] = "black_random_rgb",
-	["username8"] = "red_rgb",
-	["username9"] = "random_rgb_new_3",
-	["username10"] = "random_rgb_1",
-	["username11"] = "random_rgb_2",
-	["username12"] = "random_rgb_new_4",
-	["username13"] = "random_rgb_new_5",
+	["user1"] = "pink_pulse",
+	["user2"] = "rainbow",
+	["user3"] = "purple_galaxy",
+	["user4"] = "random_rgb_new_1",
+	["user5"] = "random_rgb_new_2",
+	["user6"] = "blue_rgb",
+	["user7"] = "black_random_rgb",
+	["user8"] = "red_rgb",
+	["user9"] = "random_rgb_new_3",
+	["user10"] = "random_rgb_1",
+	["user11"] = "random_rgb_2",
+	["user12"] = "random_rgb_new_4",
+	["user13"] = "random_rgb_new_5",
 	["ItoRenz00"] = "random_rgb_new_6",
-	["Player1"] = "rainbow",
-	["Player2"] = "purple_galaxy",
-	["Player3"] = "blue_rgb",
-	["Player4"] = "red_rgb",
-	["Player5"] = "pink_pulse",
-	["Player6"] = "random_rgb_new_1",
-	["Player7"] = "random_rgb_new_2",
-	["Player8"] = "random_rgb_new_3",
-	["Player9"] = "random_rgb_new_4",
-	["Player10"] = "random_rgb_new_5",
-	
-	-- Owner Rainbow (Special Effect for Owners Only)
-	["OwnerUsername1"] = "owner_rainbow",
-	["OwnerUsername2"] = "owner_rainbow",   
-	["OwnerUsername3"] = "owner_rainbow",
+	["user15"] = "random_rgb_new_6",
+	["user16"] = "red_rgb",
+	["user17"] = "red_rgb",
+	["user18"] = "pink_pulse",
+	["user19"] = "purple_galaxy",
+	["user20"] = "black_random_rgb",
+	["owner1"] = "owner_rainbow",
+	["owner2"] = "owner_rainbow",   
+	["owner3"] = "owner_rainbow"
 }
 
--- Role Bracket Colors
+-- ============================================================================
+-- ROLE BRACKET COLORS CONFIGURATION
+-- ============================================================================
+
 local ROLE_BRACKET_COLORS = {
 	Owner = Color3.fromRGB(255, 215, 0),
 	Developer = Color3.fromRGB(0, 200, 255), 
 	HeadAdmin = Color3.fromRGB(220, 20, 60),
 	Admin = Color3.fromRGB(50, 205, 50),
-	Mod = Color3.fromRGB(255, 140, 0),
+	Streamer = Color3.fromRGB(138, 43, 226),
+	Top1 = Color3.fromRGB(255, 215, 0),
+	Top2 = Color3.fromRGB(192, 192, 192),
+	Top3 = Color3.fromRGB(205, 127, 50),
 	Cheater = Color3.fromRGB(128, 0, 0),
 	Helper = Color3.fromRGB(100, 149, 237)
 }
 
--- ========================================
--- UTILITY FUNCTIONS
--- ========================================
+-- ============================================================================
+-- VERIFIED USERS CONFIGURATION
+-- ============================================================================
 
--- Get player role
+-- Manual verified users (besides those with auto-verified roles)
+local VerifiedUsersList = {
+	["verified_user1"] = true,
+	["verified_user2"] = true,
+	["verified_user3"] = true,
+	["verified_user4"] = true,
+	["verified_user5"] = true,
+}
+
+-- Roles that automatically get verified badge
+local AUTO_VERIFIED_ROLES = {
+	"Owner",
+	"Developer", 
+	"HeadAdmin",
+	"Admin",
+	"Streamer",
+	"Top1",
+	"Top2",
+	"Top3"
+}
+
+-- ============================================================================
+-- UTILITY FUNCTIONS
+-- ============================================================================
+
 local function getPlayerRole(username)
 	for role, users in pairs(ROLES) do
 		if users[username] then 
@@ -152,7 +223,25 @@ local function getPlayerRole(username)
 	return nil
 end
 
--- Get animated color based on color type
+local function isPlayerVerified(username)
+	-- Check manual verified list
+	if VerifiedUsersList[username] then
+		return true
+	end
+	
+	-- Check if player has auto-verified role
+	local role = getPlayerRole(username)
+	if role then
+		for _, autoRole in ipairs(AUTO_VERIFIED_ROLES) do
+			if role == autoRole then
+				return true
+			end
+		end
+	end
+	
+	return false
+end
+
 local function getAnimatedColor(colorType, time)
 	local t = time or tick()
 
@@ -317,52 +406,60 @@ local function getAnimatedColor(colorType, time)
 	end
 end
 
--- Get rank title and color based on summit count
 local function getRank(summit)
 	if summit < 0 then
-		return "❓ Summit Tidak Dikenal", Color3.fromRGB(128, 128, 128)
-	elseif summit >= 10000 then
-		return "🌟 GOD", Color3.fromRGB(255, 215, 0)
-	elseif summit >= 8000 then
-		return "⚡ Dewa", Color3.fromRGB(138, 43, 226)
-	elseif summit >= 6500 then
-		return "🔥 Si Paling Pro", Color3.fromRGB(255, 69, 0)
-	elseif summit >= 5000 then
-		return "❄️ Too EZ for me", Color3.fromRGB(0, 191, 255)
-	elseif summit >= 4000 then
-		return "🌪️ Juara", Color3.fromRGB(70, 130, 180)
-	elseif summit >= 3500 then
-		return "💎 Pendaki Elite", Color3.fromRGB(185, 242, 255)
+		return "虚无 Void", Color3.fromRGB(128, 128, 128)
 	elseif summit >= 3000 then
-		return "🏆 Jago Mampus", Color3.fromRGB(255, 215, 0)
-	elseif summit >= 2500 then
-		return "⚔️ Legendaris", Color3.fromRGB(255, 140, 0)
+		return "起源 Origin", Color3.fromRGB(255, 215, 0)
+	elseif summit >= 2700 then
+		return "创世 Creator", Color3.fromRGB(138, 43, 226)
+	elseif summit >= 2350 then
+		return "至高 Supreme", Color3.fromRGB(255, 69, 0)
 	elseif summit >= 2000 then
-		return "🗡️ Udah Gila", Color3.fromRGB(148, 0, 211)
-	elseif summit >= 1800 then
-		return "🌀 Mendaki Tanpa Henti", Color3.fromRGB(75, 0, 130)
-	elseif summit >= 1600 then
-		return "🔮 Master Summit", Color3.fromRGB(147, 112, 219)
+		return "帝王 Emperor", Color3.fromRGB(0, 191, 255)
+	elseif summit >= 1700 then
+		return "圣人 Sage", Color3.fromRGB(70, 130, 180)
 	elseif summit >= 1400 then
-		return "⭐ Pendaki Langit", Color3.fromRGB(255, 255, 0)
-	elseif summit >= 1200 then
-		return "🚀 Tak Terhentikan", Color3.fromRGB(0, 255, 255)
-	elseif summit >= 1000 then
-		return "👑 Master", Color3.fromRGB(255, 215, 0)
+		return "神圣 Holy", Color3.fromRGB(185, 242, 255)
+	elseif summit >= 1150 then
+		return "大真仙 Great True Immortal", Color3.fromRGB(255, 215, 0)
+	elseif summit >= 950 then
+		return "真仙 True Immortal", Color3.fromRGB(255, 140, 0)
+	elseif summit >= 800 then
+		return "天仙 Heaven Immortal", Color3.fromRGB(148, 0, 211)
+	elseif summit >= 675 then
+		return "地仙 Earth Immortal", Color3.fromRGB(75, 0, 130)
+	elseif summit >= 550 then
+		return "渡劫 Nether Pass", Color3.fromRGB(147, 112, 219)
+	elseif summit >= 450 then
+		return "神变 Divine Transformation", Color3.fromRGB(255, 255, 0)
+	elseif summit >= 350 then
+		return "炼虚 Spatial Tempering", Color3.fromRGB(0, 255, 255)
+	elseif summit >= 275 then
+		return "化神 Life Transformation", Color3.fromRGB(255, 215, 0)
+	elseif summit >= 200 then
+		return "合体 Soul Transformation", Color3.fromRGB(34, 139, 34)
+	elseif summit >= 150 then
+		return "炼体 Body Transformation", Color3.fromRGB(255, 165, 0)
 	elseif summit >= 100 then
-		return "🏔️ Jago Banget", Color3.fromRGB(34, 139, 34)
+		return "碎丹 Core Shattering", Color3.fromRGB(255, 69, 0)
+	elseif summit >= 75 then
+		return "元婴 Primordial Spirit", Color3.fromRGB(210, 180, 140)
 	elseif summit >= 50 then
-		return "💪 Tryhard", Color3.fromRGB(255, 165, 0)
-	elseif summit >= 25 then
-		return "🔥 Lumayan Jago", Color3.fromRGB(255, 69, 0)
+		return "金丹 Golden Core", Color3.fromRGB(255, 215, 0)
+	elseif summit >= 35 then
+		return "灵核 Spiritual Core", Color3.fromRGB(200, 200, 200)
+	elseif summit >= 20 then
+		return "元神 Nascent Soul", Color3.fromRGB(138, 43, 226)
 	elseif summit >= 10 then
-		return "🗿 Pendaki Pemula", Color3.fromRGB(210, 180, 140)
+		return "筑基 Foundation Establishment", Color3.fromRGB(100, 149, 237)
+	elseif summit >= 5 then
+		return "凝气 Qi Condensation", Color3.fromRGB(0, 191, 255)
 	else
-		return "🤡 Cupuh Banget", Color3.fromRGB(255, 255, 255)
+		return "凡人 Mortal", Color3.fromRGB(255, 255, 255)
 	end
 end
 
--- Create a text label helper
 local function createLabel(parent, props)
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
@@ -383,18 +480,19 @@ local function createLabel(parent, props)
 	return label
 end
 
--- ========================================
+-- ============================================================================
 -- DISPLAY CREATION
--- ========================================
+-- ============================================================================
 
 local function createMinimalistDisplay(player, head, summit)
-	-- Remove old GUI and disable default name tag
+	-- Remove old GUIs
 	for _, gui in ipairs(head:GetChildren()) do
 		if gui:IsA("BillboardGui") then
 			gui:Destroy()
 		end
 	end
 
+	-- Hide default nametag
 	if head.Parent and head.Parent:IsA("Model") then
 		local humanoid = head.Parent:FindFirstChild("Humanoid")
 		if humanoid then
@@ -402,42 +500,38 @@ local function createMinimalistDisplay(player, head, summit)
 		end
 	end
 
-	-- Get player info
 	local role = getPlayerRole(player.Name)
 	local customTitle = CUSTOM_TITLES[player.Name]
 	local colorType = CUSTOM_COLOR_TYPES[player.Name]
-	local isVerified = VerifiedUsersList[player.Name]
+	local isVerified = isPlayerVerified(player.Name)
 	local isPremium = player.MembershipType == Enum.MembershipType.Premium
 
-	-- Create main GUI
+	-- Main GUI
 	local mainGui = Instance.new("BillboardGui")
 	mainGui.Name = "MainDisplay"
 	mainGui.Adornee = head
-	mainGui.Size = UDim2.new(0, 280, 0, 75)
-	mainGui.StudsOffset = Vector3.new(0, 3.5, 0)
+	mainGui.Size = UDim2.new(0, 280, 0, 65)
+	mainGui.StudsOffset = Vector3.new(0, 2.5, 0)
 	mainGui.AlwaysOnTop = true
-	mainGui.MaxDistance = 50  -- Optimal distance for title visibility
+	mainGui.MaxDistance = 25
 	mainGui.Parent = head
 
-	-- Container Frame
 	local container = Instance.new("Frame")
 	container.Size = UDim2.new(1, 0, 1, 0)
 	container.BackgroundTransparency = 1
 	container.Parent = mainGui
 
-	-- ========================================
-	-- LINE 1: Role + Custom Title
-	-- ========================================
+	-- LINE 1: Role + Custom Title (if role exists)
 	if role then
 		local roleContainer = Instance.new("Frame")
 		roleContainer.Name = "RoleContainer"
-		roleContainer.Size = UDim2.new(1, 0, 0.33, 0)
+		roleContainer.Size = UDim2.new(1, 0, 0.31, 0)
 		roleContainer.Position = UDim2.new(0, 0, 0, 0)
 		roleContainer.BackgroundTransparency = 1
 		roleContainer.Parent = container
 
 		if customTitle and colorType then
-			-- Create layout for centered role + title
+			-- Use UIListLayout for horizontal arrangement
 			local listLayout = Instance.new("UIListLayout")
 			listLayout.FillDirection = Enum.FillDirection.Horizontal
 			listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -446,7 +540,6 @@ local function createMinimalistDisplay(player, head, summit)
 			listLayout.Padding = UDim.new(0, 5)
 			listLayout.Parent = roleContainer
 
-			-- Role label
 			local roleLabel = createLabel(roleContainer, {
 				Size = UDim2.new(0, 0, 1, 0),
 				AutomaticSize = Enum.AutomaticSize.X,
@@ -455,7 +548,6 @@ local function createMinimalistDisplay(player, head, summit)
 				Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
 			})
 
-			-- Custom title label
 			local titleLabel = createLabel(roleContainer, {
 				Size = UDim2.new(0, 0, 1, 0),
 				AutomaticSize = Enum.AutomaticSize.X,
@@ -464,32 +556,31 @@ local function createMinimalistDisplay(player, head, summit)
 			})
 
 			-- Animate custom title color
-			spawn(function()
+			task.spawn(function()
 				while titleLabel and titleLabel.Parent do
 					local currentTime = tick()
 					local animatedColor = getAnimatedColor(colorType, currentTime)
 					titleLabel.TextColor3 = animatedColor
-					wait(0.1)
+					task.wait(0.1)
 				end
 			end)
 
 		elseif colorType == "owner_rainbow" then
-			-- Owner rainbow animation
 			local roleLabel = createLabel(roleContainer, {
 				Text = "[" .. role .. "👑]"
 			})
 
-			spawn(function()
+			-- Animate owner rainbow
+			task.spawn(function()
 				while roleLabel and roleLabel.Parent do
 					local currentTime = tick()
 					local rainbowColor = getAnimatedColor("owner_rainbow", currentTime)
 					roleLabel.TextColor3 = rainbowColor
-					wait(0.1)
+					task.wait(0.1)
 				end
 			end)
 
 		else
-			-- Static role display
 			createLabel(roleContainer, {
 				TextColor3 = ROLE_BRACKET_COLORS[role] or Color3.new(1, 1, 1),
 				Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
@@ -497,17 +588,14 @@ local function createMinimalistDisplay(player, head, summit)
 		end
 	end
 
-	-- ========================================
-	-- LINE 2: Premium Icon + DisplayName + Checkmark
-	-- ========================================
+	-- LINE 2: DisplayName + Premium + Verified
 	local line2Frame = Instance.new("Frame")
 	line2Frame.Name = "NameLineFrame"
-	line2Frame.Size = UDim2.new(1, 0, 0.33, 0)
-	line2Frame.Position = UDim2.new(0, 0, role and 0.33 or 0.2, 0)
+	line2Frame.Size = UDim2.new(1, 0, 0.35, 0)
+	line2Frame.Position = UDim2.new(0, 0, role and 0.32 or 0.15, 0)
 	line2Frame.BackgroundTransparency = 1
 	line2Frame.Parent = container
 
-	-- Create horizontal layout
 	local nameLayout = Instance.new("UIListLayout")
 	nameLayout.FillDirection = Enum.FillDirection.Horizontal
 	nameLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -516,7 +604,7 @@ local function createMinimalistDisplay(player, head, summit)
 	nameLayout.Padding = UDim.new(0, 3)
 	nameLayout.Parent = line2Frame
 
-	-- Premium Icon
+	-- Premium icon
 	if isPremium then
 		createLabel(line2Frame, {
 			Size = UDim2.new(0, 0, 1, 0),
@@ -530,7 +618,7 @@ local function createMinimalistDisplay(player, head, summit)
 		})
 	end
 
-	-- Display Name
+	-- Display name
 	createLabel(line2Frame, {
 		Size = UDim2.new(0, 0, 1, 0),
 		AutomaticSize = Enum.AutomaticSize.X,
@@ -542,7 +630,7 @@ local function createMinimalistDisplay(player, head, summit)
 		Text = player.DisplayName
 	})
 
-	-- Verified Checkmark
+	-- Verified checkmark with rainbow animation
 	if isVerified then
 		local checkmarkLabel = createLabel(line2Frame, {
 			Size = UDim2.new(0, 0, 1, 0),
@@ -554,23 +642,21 @@ local function createMinimalistDisplay(player, head, summit)
 			Text = utf8.char(0xE000)
 		})
 
-		-- Animate checkmark color
-		spawn(function()
+		-- Animate verified checkmark
+		task.spawn(function()
 			while checkmarkLabel and checkmarkLabel.Parent do
 				local time = (tick() % 4) / 4
 				local rainbowColor = Color3.fromHSV(time, 1, 1)
 				checkmarkLabel.TextColor3 = rainbowColor
-				wait(0.15)
+				task.wait(0.15)
 			end
 		end)
 	end
 
-	-- ========================================
-	-- LINE 3: Title + Summit Count
-	-- ========================================
+	-- LINE 3: Rank Title + Summit Count
 	local line3 = createLabel(container, {
 		Size = UDim2.new(1, 0, 0.34, 0),
-		Position = UDim2.new(0, 0, role and 0.66 or 0.53, 0),
+		Position = UDim2.new(0, 0, role and 0.67 or 0.50, 0),
 		Font = Enum.Font.SourceSansBold,
 		TextSize = 16,
 		TextStrokeTransparency = 0
@@ -584,12 +670,14 @@ local function createMinimalistDisplay(player, head, summit)
 	end
 
 	updateInfoLine(summit.Value)
-	summit.Changed:Connect(updateInfoLine)
+	summit:GetPropertyChangedSignal("Value"):Connect(function()
+		updateInfoLine(summit.Value)
+	end)
 end
 
--- ========================================
+-- ============================================================================
 -- PLAYER SETUP
--- ========================================
+-- ============================================================================
 
 local function setupPlayerDisplay(player)
 	local function onCharacterAdded(character)
@@ -612,7 +700,7 @@ local function setupPlayerDisplay(player)
 	player.CharacterAdded:Connect(onCharacterAdded)
 end
 
--- Setup for all existing players
+-- Initialize for existing players
 for _, player in ipairs(Players:GetPlayers()) do
 	setupPlayerDisplay(player)
 end
@@ -620,6 +708,56 @@ end
 -- Setup for new players
 Players.PlayerAdded:Connect(setupPlayerDisplay)
 
-print("PlayerDisplayClient initialized successfully!")
-print("Custom by ItoRenz00")
-print("Version 2.2 - Enhanced Multi-User Support")
+-- ============================================================================
+-- AVATAR CHANGE REFRESH (FIXED)
+-- ============================================================================
+
+local RefreshTitleEvent = ReplicatedStorage:WaitForChild("RefreshTitle", 10)
+if RefreshTitleEvent then
+	RefreshTitleEvent.OnClientEvent:Connect(function(changedPlayerId)
+		print("🔄 Title refresh request received for UserId:", changedPlayerId)
+		
+		-- Cari player yang ganti avatar
+		local changedPlayer = Players:GetPlayerByUserId(changedPlayerId)
+		
+		if changedPlayer and changedPlayer.Character then
+			-- Rebuild title untuk player tersebut
+			local head = changedPlayer.Character:FindFirstChild("Head")
+			if head then
+				-- Hapus old display
+				local oldDisplay = head:FindFirstChild("MainDisplay")
+				if oldDisplay then
+					oldDisplay:Destroy()
+				end
+				
+				-- Wait untuk character appearance update
+				task.wait(0.3)
+				
+				-- Rebuild title
+				local leaderstats = changedPlayer:FindFirstChild("leaderstats")
+				if leaderstats then
+					local summit = leaderstats:FindFirstChild("Summit")
+					if summit then
+						createMinimalistDisplay(changedPlayer, head, summit)
+						print("✅ Title refreshed for:", changedPlayer.Name)
+					end
+				end
+			end
+		end
+	end)
+	print("✅ Title refresh listener active!")
+else
+	warn("⚠️ RefreshTitle RemoteEvent not found!")
+end
+
+-- ============================================================================
+-- INITIALIZATION
+-- ============================================================================
+
+print("========================================")
+print("✨ Player Display System v1.0")
+print("========================================")
+print("✅ Author: ItoRenz00")
+print("✅ Custom titles and roles loaded")
+print("✅ Status: Ready")
+print("========================================")
