@@ -1,10 +1,10 @@
 -- ============================================================================
 -- PLAYER DISPLAY CLIENT
 -- Author: ItoRenz00
--- Version: 1.0
+-- Version: 1.1
 -- Description: Custom player name display with roles, titles, and ranks
 -- ============================================================================
--- Place in: StarterPlayer > StarterPlayerScripts or StarterGui
+-- Place in: StarterPlayer > StarterPlayerScripts
 -- ============================================================================
 
 -- ============================================================================
@@ -14,6 +14,12 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+
+-- ============================================================================
+-- CONFIGURATION
+-- ============================================================================
+
+local DEBUG_MODE = false -- Set true for detailed logs
 
 -- ============================================================================
 -- ROLE CONFIGURATION
@@ -189,7 +195,6 @@ local ROLE_BRACKET_COLORS = {
 -- VERIFIED USERS CONFIGURATION
 -- ============================================================================
 
--- Manual verified users (besides those with auto-verified roles)
 local VerifiedUsersList = {
 	["verified_user1"] = true,
 	["verified_user2"] = true,
@@ -198,7 +203,6 @@ local VerifiedUsersList = {
 	["verified_user5"] = true,
 }
 
--- Roles that automatically get verified badge
 local AUTO_VERIFIED_ROLES = {
 	"Owner",
 	"Developer", 
@@ -214,6 +218,12 @@ local AUTO_VERIFIED_ROLES = {
 -- UTILITY FUNCTIONS
 -- ============================================================================
 
+local function debugLog(...)
+	if DEBUG_MODE then
+		print("[PlayerDisplay]", ...)
+	end
+end
+
 local function getPlayerRole(username)
 	for role, users in pairs(ROLES) do
 		if users[username] then 
@@ -224,12 +234,10 @@ local function getPlayerRole(username)
 end
 
 local function isPlayerVerified(username)
-	-- Check manual verified list
 	if VerifiedUsersList[username] then
 		return true
 	end
 	
-	-- Check if player has auto-verified role
 	local role = getPlayerRole(username)
 	if role then
 		for _, autoRole in ipairs(AUTO_VERIFIED_ROLES) do
@@ -485,14 +493,12 @@ end
 -- ============================================================================
 
 local function createMinimalistDisplay(player, head, summit)
-	-- Remove old GUIs
 	for _, gui in ipairs(head:GetChildren()) do
 		if gui:IsA("BillboardGui") then
 			gui:Destroy()
 		end
 	end
 
-	-- Hide default nametag
 	if head.Parent and head.Parent:IsA("Model") then
 		local humanoid = head.Parent:FindFirstChild("Humanoid")
 		if humanoid then
@@ -506,7 +512,6 @@ local function createMinimalistDisplay(player, head, summit)
 	local isVerified = isPlayerVerified(player.Name)
 	local isPremium = player.MembershipType == Enum.MembershipType.Premium
 
-	-- Main GUI
 	local mainGui = Instance.new("BillboardGui")
 	mainGui.Name = "MainDisplay"
 	mainGui.Adornee = head
@@ -521,7 +526,6 @@ local function createMinimalistDisplay(player, head, summit)
 	container.BackgroundTransparency = 1
 	container.Parent = mainGui
 
-	-- LINE 1: Role + Custom Title (if role exists)
 	if role then
 		local roleContainer = Instance.new("Frame")
 		roleContainer.Name = "RoleContainer"
@@ -531,7 +535,6 @@ local function createMinimalistDisplay(player, head, summit)
 		roleContainer.Parent = container
 
 		if customTitle and colorType then
-			-- Use UIListLayout for horizontal arrangement
 			local listLayout = Instance.new("UIListLayout")
 			listLayout.FillDirection = Enum.FillDirection.Horizontal
 			listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -555,7 +558,6 @@ local function createMinimalistDisplay(player, head, summit)
 				Text = customTitle
 			})
 
-			-- Animate custom title color
 			task.spawn(function()
 				while titleLabel and titleLabel.Parent do
 					local currentTime = tick()
@@ -570,7 +572,6 @@ local function createMinimalistDisplay(player, head, summit)
 				Text = "[" .. role .. "👑]"
 			})
 
-			-- Animate owner rainbow
 			task.spawn(function()
 				while roleLabel and roleLabel.Parent do
 					local currentTime = tick()
@@ -588,7 +589,6 @@ local function createMinimalistDisplay(player, head, summit)
 		end
 	end
 
-	-- LINE 2: DisplayName + Premium + Verified
 	local line2Frame = Instance.new("Frame")
 	line2Frame.Name = "NameLineFrame"
 	line2Frame.Size = UDim2.new(1, 0, 0.35, 0)
@@ -604,7 +604,6 @@ local function createMinimalistDisplay(player, head, summit)
 	nameLayout.Padding = UDim.new(0, 3)
 	nameLayout.Parent = line2Frame
 
-	-- Premium icon
 	if isPremium then
 		createLabel(line2Frame, {
 			Size = UDim2.new(0, 0, 1, 0),
@@ -618,7 +617,6 @@ local function createMinimalistDisplay(player, head, summit)
 		})
 	end
 
-	-- Display name
 	createLabel(line2Frame, {
 		Size = UDim2.new(0, 0, 1, 0),
 		AutomaticSize = Enum.AutomaticSize.X,
@@ -630,7 +628,6 @@ local function createMinimalistDisplay(player, head, summit)
 		Text = player.DisplayName
 	})
 
-	-- Verified checkmark with rainbow animation
 	if isVerified then
 		local checkmarkLabel = createLabel(line2Frame, {
 			Size = UDim2.new(0, 0, 1, 0),
@@ -642,7 +639,6 @@ local function createMinimalistDisplay(player, head, summit)
 			Text = utf8.char(0xE000)
 		})
 
-		-- Animate verified checkmark
 		task.spawn(function()
 			while checkmarkLabel and checkmarkLabel.Parent do
 				local time = (tick() % 4) / 4
@@ -653,7 +649,6 @@ local function createMinimalistDisplay(player, head, summit)
 		end)
 	end
 
-	-- LINE 3: Rank Title + Summit Count
 	local line3 = createLabel(container, {
 		Size = UDim2.new(1, 0, 0.34, 0),
 		Position = UDim2.new(0, 0, role and 0.67 or 0.50, 0),
@@ -673,6 +668,8 @@ local function createMinimalistDisplay(player, head, summit)
 	summit:GetPropertyChangedSignal("Value"):Connect(function()
 		updateInfoLine(summit.Value)
 	end)
+	
+	debugLog("Display created for:", player.Name)
 end
 
 -- ============================================================================
@@ -700,54 +697,46 @@ local function setupPlayerDisplay(player)
 	player.CharacterAdded:Connect(onCharacterAdded)
 end
 
--- Initialize for existing players
 for _, player in ipairs(Players:GetPlayers()) do
 	setupPlayerDisplay(player)
 end
 
--- Setup for new players
 Players.PlayerAdded:Connect(setupPlayerDisplay)
 
 -- ============================================================================
--- AVATAR CHANGE REFRESH (FIXED)
+-- AVATAR CHANGE REFRESH
 -- ============================================================================
 
 local RefreshTitleEvent = ReplicatedStorage:WaitForChild("RefreshTitle", 10)
 if RefreshTitleEvent then
 	RefreshTitleEvent.OnClientEvent:Connect(function(changedPlayerId)
-		print("🔄 Title refresh request received for UserId:", changedPlayerId)
+		debugLog("Title refresh request for UserId:", changedPlayerId)
 		
-		-- Cari player yang ganti avatar
 		local changedPlayer = Players:GetPlayerByUserId(changedPlayerId)
 		
 		if changedPlayer and changedPlayer.Character then
-			-- Rebuild title untuk player tersebut
 			local head = changedPlayer.Character:FindFirstChild("Head")
 			if head then
-				-- Hapus old display
 				local oldDisplay = head:FindFirstChild("MainDisplay")
 				if oldDisplay then
 					oldDisplay:Destroy()
 				end
 				
-				-- Wait untuk character appearance update
 				task.wait(0.3)
 				
-				-- Rebuild title
 				local leaderstats = changedPlayer:FindFirstChild("leaderstats")
 				if leaderstats then
 					local summit = leaderstats:FindFirstChild("Summit")
 					if summit then
 						createMinimalistDisplay(changedPlayer, head, summit)
-						print("✅ Title refreshed for:", changedPlayer.Name)
+						debugLog("Title refreshed for:", changedPlayer.Name)
 					end
 				end
 			end
 		end
 	end)
-	print("✅ Title refresh listener active!")
-else
-	warn("⚠️ RefreshTitle RemoteEvent not found!")
+	
+	debugLog("Title refresh listener active")
 end
 
 -- ============================================================================
@@ -755,9 +744,6 @@ end
 -- ============================================================================
 
 print("========================================")
-print("✨ Player Display System v1.0")
-print("========================================")
-print("✅ Author: ItoRenz00")
-print("✅ Custom titles and roles loaded")
-print("✅ Status: Ready")
+print("✅ Player Display System Ready")
+print("👤 Author: ItoRenz00")
 print("========================================")
