@@ -1,11 +1,19 @@
--- ============================================================================
--- PLAYER DISPLAY CLIENT
--- Author: ItoRenz00
--- Version: 1.1
--- Description: Custom player name display with roles, titles, and ranks
--- ============================================================================
--- Place in: StarterPlayer > StarterPlayerScripts
--- ============================================================================
+--[[
+═══════════════════════════════════════════════════════════════════════════════
+PLAYER DISPLAY CLIENT
+═══════════════════════════════════════════════════════════════════════════════
+Author: ItoRenz00
+Version: 2.0
+Date: November 21, 2025
+
+Description:
+Custom player overhead display with roles, titles, ranks, country flags,
+and device detection synchronized across all players.
+
+Installation:
+Place in: StarterPlayer > StarterPlayerScripts
+═══════════════════════════════════════════════════════════════════════════════
+--]]
 
 -- ============================================================================
 -- SERVICES
@@ -13,663 +21,799 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalizationService = game:GetService("LocalizationService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 -- ============================================================================
 -- CONFIGURATION
 -- ============================================================================
 
-local DEBUG_MODE = false -- Set true for detailed logs
+local DEBUG_MODE = false
 
 -- ============================================================================
 -- ROLE CONFIGURATION
 -- ============================================================================
 
 local ROLES = {
-	Owner = {
-		["ItoRenz00"] = true,
-		["owner_username2"] = true,
-		["owner_username3"] = true,
-		["owner_username4"] = true,
-		["owner_username5"] = true
-	},
-	Developer = { 
-		["dev_username1"] = true,
-		["dev_username2"] = true,
-		["dev_username3"] = true,
-		["dev_username4"] = true,
-		["dev_username5"] = true
-	},
-	HeadAdmin = { 
-		["headadmin_username1"] = true,
-		["headadmin_username2"] = true,
-		["headadmin_username3"] = true,
-		["headadmin_username4"] = true,
-		["headadmin_username5"] = true
-	},
-	Admin = {
-		["admin_username1"] = true,
-		["admin_username2"] = true,
-		["admin_username3"] = true,
-		["admin_username4"] = true,
-		["admin_username5"] = true,
-		["admin_username6"] = true,
-		["admin_username7"] = true,
-		["admin_username8"] = true,
-		["admin_username9"] = true,
-		["admin_username10"] = true
-	},
-	Streamer = {
-		["streamer_username1"] = true,
-		["streamer_username2"] = true,
-		["streamer_username3"] = true,
-		["streamer_username4"] = true,
-		["streamer_username5"] = true,
-		["streamer_username6"] = true,
-		["streamer_username7"] = true,
-		["streamer_username8"] = true,
-		["streamer_username9"] = true,
-		["streamer_username10"] = true,
-		["streamer_username11"] = true,
-		["streamer_username12"] = true,
-		["streamer_username13"] = true,
-		["streamer_username14"] = true,
-		["streamer_username15"] = true,
-		["streamer_username16"] = true,
-		["streamer_username17"] = true,
-		["streamer_username18"] = true,
-		["streamer_username19"] = true,
-		["streamer_username20"] = true
-	},
-	Top1 = {
-		["top1_username"] = true
-	},
-	Top2 = {
-		["top2_username"] = true
-	},
-	Top3 = {
-		["top3_username"] = true
-	},
-	Cheater = {
-		["cheater_username1"] = true,
-		["cheater_username2"] = true
-	},
-	Helper = {
-		["helper_username1"] = true,
-		["helper_username2"] = true
-	}
+Owner = {
+["ItoRenz00"] = true,
+["owner_username2"] = true,
+["owner_username3"] = true,
+["owner_username4"] = true,
+["owner_username5"] = true
+},
+Developer = { 
+["dev_username1"] = true,
+["dev_username2"] = true,
+["dev_username3"] = true,
+["dev_username4"] = true,
+["dev_username5"] = true
+},
+HeadAdmin = { 
+["headadmin_username1"] = true,
+["headadmin_username2"] = true,
+["headadmin_username3"] = true,
+["headadmin_username4"] = true,
+["headadmin_username5"] = true
+},
+Admin = {
+["admin_username1"] = true,
+["admin_username2"] = true,
+["admin_username3"] = true,
+["admin_username4"] = true,
+["admin_username5"] = true,
+["admin_username6"] = true,
+["admin_username7"] = true,
+["admin_username8"] = true,
+["admin_username9"] = true,
+["admin_username10"] = true
+},
+Streamer = {
+["streamer_username1"] = true,
+["streamer_username2"] = true,
+["streamer_username3"] = true,
+["streamer_username4"] = true,
+["streamer_username5"] = true,
+["streamer_username6"] = true,
+["streamer_username7"] = true,
+["streamer_username8"] = true,
+["streamer_username9"] = true,
+["streamer_username10"] = true,
+["streamer_username11"] = true,
+["streamer_username12"] = true,
+["streamer_username13"] = true,
+["streamer_username14"] = true,
+["streamer_username15"] = true,
+["streamer_username16"] = true,
+["streamer_username17"] = true,
+["streamer_username18"] = true,
+["streamer_username19"] = true,
+["streamer_username20"] = true
+},
+Top1 = { ["top1_username"] = true },
+Top2 = { ["top2_username"] = true },
+Top3 = { ["top3_username"] = true },
+Cheater = {
+["cheater_username1"] = true,
+["cheater_username2"] = true
+},
+Helper = {
+["helper_username1"] = true,
+["helper_username2"] = true
 }
-
--- ============================================================================
--- ROLE EMOJI CONFIGURATION
--- ============================================================================
+}
 
 local ROLE_EMOJI = {
-	Owner = "👑",
-	Developer = "💻",
-	HeadAdmin = "🛡️",
-	Admin = "🛡️",
-	Streamer = "📷",
-	Top1 = "🥇",
-	Top2 = "🥈",
-	Top3 = "🥉",
-	Cheater = "👹",
-	Helper = "🩺",
+Owner = "👑",
+Developer = "💻",
+HeadAdmin = "🛡️",
+Admin = "🛡️",
+Streamer = "📷",
+Top1 = "🥇",
+Top2 = "🥈",
+Top3 = "🥉",
+Cheater = "👹",
+Helper = "🩺",
 }
-
--- ============================================================================
--- CUSTOM TITLES CONFIGURATION
--- ============================================================================
 
 local CUSTOM_TITLES = {
-	["ItoRenz00"] = "EMPEROR",
-	["custom_title_username2"] = "Raja Summit",
-	["custom_title_username3"] = "Dewa Pendaki",
-	["custom_title_username4"] = "Master Sejati",
-	["custom_title_username5"] = "Penguasa Gunung",
-	["custom_title_username6"] = "Si Penakluk",
-	["custom_title_username7"] = "Juara Abadi",
-	["custom_title_username8"] = "Petualang Elite",
-	["custom_title_username9"] = "Sang Penjelajah",
-	["custom_title_username10"] = "Raja Ketinggian",
-	["custom_title_username11"] = "Legenda Hidup",
-	["custom_title_username12"] = "Pro Player",
-	["custom_title_username13"] = "God Tier",
-	["custom_title_username14"] = "Unbeatable",
-	["custom_title_username15"] = "Speed Demon",
-	["custom_title_username16"] = "Elite Climber",
-	["custom_title_username17"] = "Summit King",
-	["custom_title_username18"] = "Mountain Boss",
-	["custom_title_username19"] = "Legend Maker",
-	["custom_title_username20"] = "Ultimate Pro"
+["ItoRenz00"] = "EMPEROR",
+["custom_title_username2"] = "Raja Summit",
+["custom_title_username3"] = "Dewa Pendaki",
+["custom_title_username4"] = "Master Sejati",
+["custom_title_username5"] = "Penguasa Gunung",
+["custom_title_username6"] = "Si Penakluk",
+["custom_title_username7"] = "Juara Abadi",
+["custom_title_username8"] = "Petualang Elite",
+["custom_title_username9"] = "Sang Penjelajah",
+["custom_title_username10"] = "Raja Ketinggian",
+["custom_title_username11"] = "Legenda Hidup",
+["custom_title_username12"] = "Pro Player",
+["custom_title_username13"] = "God Tier",
+["custom_title_username14"] = "Unbeatable",
+["custom_title_username15"] = "Speed Demon",
+["custom_title_username16"] = "Elite Climber",
+["custom_title_username17"] = "Summit King",
+["custom_title_username18"] = "Mountain Boss",
+["custom_title_username19"] = "Legend Maker",
+["custom_title_username20"] = "Ultimate Pro"
 }
-
--- ============================================================================
--- CUSTOM COLOR TYPES CONFIGURATION
--- ============================================================================
 
 local CUSTOM_COLOR_TYPES = {
-	["user1"] = "pink_pulse",
-	["user2"] = "rainbow",
-	["user3"] = "purple_galaxy",
-	["user4"] = "random_rgb_new_1",
-	["user5"] = "random_rgb_new_2",
-	["user6"] = "blue_rgb",
-	["user7"] = "black_random_rgb",
-	["user8"] = "red_rgb",
-	["user9"] = "random_rgb_new_3",
-	["user10"] = "random_rgb_1",
-	["user11"] = "random_rgb_2",
-	["user12"] = "random_rgb_new_4",
-	["user13"] = "random_rgb_new_5",
-	["ItoRenz00"] = "random_rgb_new_6",
-	["user15"] = "random_rgb_new_6",
-	["user16"] = "red_rgb",
-	["user17"] = "red_rgb",
-	["user18"] = "pink_pulse",
-	["user19"] = "purple_galaxy",
-	["user20"] = "black_random_rgb",
-	["owner1"] = "owner_rainbow",
-	["owner2"] = "owner_rainbow",   
-	["owner3"] = "owner_rainbow"
+["user1"] = "pink_pulse",
+["user2"] = "rainbow",
+["user3"] = "purple_galaxy",
+["user4"] = "random_rgb_new_1",
+["user5"] = "random_rgb_new_2",
+["user6"] = "blue_rgb",
+["user7"] = "black_random_rgb",
+["user8"] = "red_rgb",
+["user9"] = "random_rgb_new_3",
+["user10"] = "random_rgb_1",
+["user11"] = "random_rgb_2",
+["user12"] = "random_rgb_new_4",
+["user13"] = "random_rgb_new_5",
+["ItoRenz00"] = "random_rgb_new_6",
+["user15"] = "random_rgb_new_6",
+["user16"] = "red_rgb",
+["user17"] = "red_rgb",
+["user18"] = "pink_pulse",
+["user19"] = "purple_galaxy",
+["user20"] = "black_random_rgb",
+["owner1"] = "owner_rainbow",
+["owner2"] = "owner_rainbow",   
+["owner3"] = "owner_rainbow"
 }
-
--- ============================================================================
--- ROLE BRACKET COLORS CONFIGURATION
--- ============================================================================
 
 local ROLE_BRACKET_COLORS = {
-	Owner = Color3.fromRGB(255, 215, 0),
-	Developer = Color3.fromRGB(0, 200, 255), 
-	HeadAdmin = Color3.fromRGB(220, 20, 60),
-	Admin = Color3.fromRGB(50, 205, 50),
-	Streamer = Color3.fromRGB(138, 43, 226),
-	Top1 = Color3.fromRGB(255, 215, 0),
-	Top2 = Color3.fromRGB(192, 192, 192),
-	Top3 = Color3.fromRGB(205, 127, 50),
-	Cheater = Color3.fromRGB(128, 0, 0),
-	Helper = Color3.fromRGB(100, 149, 237)
+Owner = Color3.fromRGB(255, 215, 0),
+Developer = Color3.fromRGB(0, 200, 255), 
+HeadAdmin = Color3.fromRGB(220, 20, 60),
+Admin = Color3.fromRGB(50, 205, 50),
+Streamer = Color3.fromRGB(138, 43, 226),
+Top1 = Color3.fromRGB(255, 215, 0),
+Top2 = Color3.fromRGB(192, 192, 192),
+Top3 = Color3.fromRGB(205, 127, 50),
+Cheater = Color3.fromRGB(128, 0, 0),
+Helper = Color3.fromRGB(100, 149, 237)
 }
 
--- ============================================================================
--- VERIFIED USERS CONFIGURATION
--- ============================================================================
-
 local VerifiedUsersList = {
-	["verified_user1"] = true,
-	["verified_user2"] = true,
-	["verified_user3"] = true,
-	["verified_user4"] = true,
-	["verified_user5"] = true,
+["verified_user1"] = true,
+["verified_user2"] = true,
+["verified_user3"] = true,
+["verified_user4"] = true,
+["verified_user5"] = true,
 }
 
 local AUTO_VERIFIED_ROLES = {
-	"Owner",
-	"Developer", 
-	"HeadAdmin",
-	"Admin",
-	"Streamer",
-	"Top1",
-	"Top2",
-	"Top3"
+"Owner",
+"Developer", 
+"HeadAdmin",
+"Admin",
+"Streamer",
+"Top1",
+"Top2",
+"Top3"
 }
+
+-- ============================================================================
+-- FLAG AND DEVICE CONFIGURATION
+-- ============================================================================
+
+local COUNTRY_FLAGS = {
+ID = 131383711350347,
+US = 134558926936054,
+JP = 138316536088662,
+GB = 118277527248746,
+DE = 131962853730536,
+BR = 133479974469294,
+FR = 109370933463714,
+PH = 137292990696852,
+MY = 94234836999266,
+TH = 72267203631280,
+VN = 108451256776422,
+KR = 130558885818862,
+CN = 91132416576016,
+AU = 124853643893453,
+CA = 120972527072116,
+MX = 134673482965337,
+}
+
+local DEVICE_ICONS = {
+Computer = 106290076073871,
+Phone = 94089970073947,
+Console = 139663456027187,
+}
+
+-- ============================================================================
+-- DEVICE DETECTION WITH SYNCHRONIZATION
+-- ============================================================================
+
+local PlayerDevices = {}
+
+local function detectDevice()
+    if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
+        return "Phone"
+    elseif UserInputService.GamepadEnabled and not UserInputService.KeyboardEnabled then
+        return "Console"
+    elseif UserInputService.KeyboardEnabled then
+        return "Computer"
+    else
+        return "Computer"
+    end
+end
+
+local localDevice = detectDevice()
+PlayerDevices[LocalPlayer.UserId] = localDevice
+
+local UpdateDeviceEvent = ReplicatedStorage:WaitForChild("UpdateDevice", 10)
+if UpdateDeviceEvent then
+    UpdateDeviceEvent:FireServer(localDevice)
+end
+
+local DeviceUpdateEvent = ReplicatedStorage:WaitForChild("DeviceUpdate", 10)
+if DeviceUpdateEvent then
+    DeviceUpdateEvent.OnClientEvent:Connect(function(userId, device)
+        PlayerDevices[userId] = device
+        
+        local player = Players:GetPlayerByUserId(userId)
+        if player and player.Character then
+            local head = player.Character:FindFirstChild("Head")
+            if head then
+                local display = head:FindFirstChild("MainDisplay")
+                if display then
+                    display:Destroy()
+                    task.wait(0.1)
+                    
+                    local leaderstats = player:FindFirstChild("leaderstats")
+                    if leaderstats then
+                        local summit = leaderstats:FindFirstChild("Summit")
+                        if summit then
+                            createMinimalistDisplay(player, head, summit)
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+UserInputService.LastInputTypeChanged:Connect(function()
+    local newDevice = detectDevice()
+    if newDevice ~= localDevice then
+        localDevice = newDevice
+        PlayerDevices[LocalPlayer.UserId] = newDevice
+        if UpdateDeviceEvent then
+            UpdateDeviceEvent:FireServer(newDevice)
+        end
+    end
+end)
 
 -- ============================================================================
 -- UTILITY FUNCTIONS
 -- ============================================================================
 
 local function debugLog(...)
-	if DEBUG_MODE then
-		print("[PlayerDisplay]", ...)
-	end
+    if DEBUG_MODE then
+        print("[PlayerDisplay]", ...)
+    end
 end
 
 local function getPlayerRole(username)
-	for role, users in pairs(ROLES) do
-		if users[username] then 
-			return role 
-		end
-	end
-	return nil
+    for role, users in pairs(ROLES) do
+        if users[username] then 
+            return role 
+        end
+    end
+    return nil
 end
 
 local function isPlayerVerified(username)
-	if VerifiedUsersList[username] then
-		return true
-	end
-	
-	local role = getPlayerRole(username)
-	if role then
-		for _, autoRole in ipairs(AUTO_VERIFIED_ROLES) do
-			if role == autoRole then
-				return true
-			end
-		end
-	end
-	
-	return false
+    if VerifiedUsersList[username] then
+        return true
+    end
+    
+    local role = getPlayerRole(username)
+    if role then
+        for _, autoRole in ipairs(AUTO_VERIFIED_ROLES) do
+            if role == autoRole then
+                return true
+            end
+        end
+    end
+    
+    return false
+end
+
+local function getCountryCode(player)
+    local success, code = pcall(function()
+        return LocalizationService:GetCountryRegionForPlayerAsync(player)
+    end)
+    return success and code or "ID"
+end
+
+local function getPlayerDevice(player)
+    return PlayerDevices[player.UserId] or "Computer"
 end
 
 local function getAnimatedColor(colorType, time)
-	local t = time or tick()
-
-	if colorType == "pink_pulse" then
-		local intensity = (math.sin(t * 3) + 1) / 2
-		return Color3.fromRGB(255, math.floor(150 + intensity * 105), math.floor(180 + intensity * 75))
-		
-	elseif colorType == "rainbow" then
-		local hue = (t * 0.5) % 1
-		return Color3.fromHSV(hue, 1, 1)
-		
-	elseif colorType == "purple_galaxy" then
-		local phase = t * 2.8
-		local cycle = (phase % 4) / 4
-		if cycle < 0.25 then
-			local progress = cycle / 0.25
-			return Color3.fromRGB(
-				math.floor(75 + progress * 130),
-				math.floor(0 + progress * 50),
-				math.floor(130 + progress * 125)
-			)
-		elseif cycle < 0.5 then
-			local progress = (cycle - 0.25) / 0.25
-			return Color3.fromRGB(
-				math.floor(205 + progress * 50),
-				math.floor(50 + progress * 155),
-				math.floor(255 - progress * 105)
-			)
-		elseif cycle < 0.75 then
-			local progress = (cycle - 0.5) / 0.25
-			return Color3.fromRGB(
-				math.floor(255 - progress * 117),
-				math.floor(205 - progress * 162),
-				math.floor(150 + progress * 76)
-			)
-		else
-			local progress = (cycle - 0.75) / 0.25
-			return Color3.fromRGB(
-				math.floor(138 - progress * 63),
-				math.floor(43 - progress * 43),
-				math.floor(226 - progress * 96)
-			)
-		end
-		
-	elseif colorType == "black_random_rgb" then
-		local phase = t * 3.5
-		local cycle = (phase % 4) / 4
-		if cycle < 0.25 then
-			local progress = cycle / 0.25
-			return Color3.fromRGB(math.floor(0 + progress * 80), 0, 0)
-		elseif cycle < 0.5 then
-			local progress = (cycle - 0.25) / 0.25
-			return Color3.fromRGB(math.floor(80 - progress * 80), math.floor(0 + progress * 80), 0)
-		elseif cycle < 0.75 then
-			local progress = (cycle - 0.5) / 0.25
-			return Color3.fromRGB(0, math.floor(80 - progress * 80), math.floor(0 + progress * 80))
-		else
-			local progress = (cycle - 0.75) / 0.25
-			return Color3.fromRGB(0, 0, math.floor(80 - progress * 80))
-		end
-		
-	elseif colorType == "blue_rgb" then
-		local phase = t * 3.5
-		local cycle = (phase % 3) / 3
-		if cycle < 0.33 then
-			local progress = cycle / 0.33
-			return Color3.fromRGB(0, math.floor(0 + progress * 255), 255)
-		elseif cycle < 0.66 then
-			local progress = (cycle - 0.33) / 0.33
-			return Color3.fromRGB(math.floor(0 + progress * 128), math.floor(255 - progress * 255), 255)
-		else
-			local progress = (cycle - 0.66) / 0.34
-			return Color3.fromRGB(math.floor(128 - progress * 128), 0, 255)
-		end
-		
-	elseif colorType == "red_rgb" then
-		local phase = t * 4.0
-		local cycle = (phase % 3) / 3
-		if cycle < 0.33 then
-			local progress = cycle / 0.33
-			return Color3.fromRGB(255, math.floor(0 + progress * 165), 0)
-		elseif cycle < 0.66 then
-			local progress = (cycle - 0.33) / 0.33
-			return Color3.fromRGB(255, math.floor(165 + progress * 90), math.floor(0 + progress * 203))
-		else
-			local progress = (cycle - 0.66) / 0.34
-			return Color3.fromRGB(255, math.floor(255 - progress * 255), math.floor(203 - progress * 203))
-		end
-		
-	elseif colorType == "random_rgb_new_1" then
-		local phase1, phase2, phase3 = t * 4.5, t * 3.8, t * 5.2
-		return Color3.fromRGB(
-			math.floor(120 + (math.sin(phase1) + 1) * 67.5),
-			math.floor(120 + (math.sin(phase2) + 1) * 67.5),
-			math.floor(120 + (math.sin(phase3) + 1) * 67.5)
-		)
-		
-	elseif colorType == "random_rgb_new_2" then
-		local phase1, phase2, phase3 = t * 3.2, t * 4.7, t * 3.9
-		return Color3.fromRGB(
-			math.floor(100 + (math.sin(phase1) + 1) * 77.5),
-			math.floor(100 + (math.sin(phase2) + 1) * 77.5),
-			math.floor(100 + (math.sin(phase3) + 1) * 77.5)
-		)
-		
-	elseif colorType == "random_rgb_new_3" then
-		local phase1, phase2, phase3 = t * 5.8, t * 4.1, t * 6.2
-		return Color3.fromRGB(
-			math.floor(90 + (math.sin(phase1) + 1) * 82.5),
-			math.floor(90 + (math.sin(phase2) + 1) * 82.5),
-			math.floor(90 + (math.sin(phase3) + 1) * 82.5)
-		)
-		
-	elseif colorType == "random_rgb_new_4" then
-		local phase1, phase2, phase3 = t * 4.3, t * 5.1, t * 3.6
-		return Color3.fromRGB(
-			math.floor(110 + (math.sin(phase1) + 1) * 72.5),
-			math.floor(110 + (math.sin(phase2) + 1) * 72.5),
-			math.floor(110 + (math.sin(phase3) + 1) * 72.5)
-		)
-		
-	elseif colorType == "random_rgb_new_5" then
-		local phase1, phase2, phase3 = t * 3.7, t * 5.4, t * 4.8
-		return Color3.fromRGB(
-			math.floor(95 + (math.sin(phase1) + 1) * 80),
-			math.floor(95 + (math.sin(phase2) + 1) * 80),
-			math.floor(95 + (math.sin(phase3) + 1) * 80)
-		)
-		
-	elseif colorType == "random_rgb_new_6" then
-		local phase1, phase2, phase3 = t * 4.9, t * 3.4, t * 5.7
-		return Color3.fromRGB(
-			math.floor(105 + (math.sin(phase1) + 1) * 75),
-			math.floor(105 + (math.sin(phase2) + 1) * 75),
-			math.floor(105 + (math.sin(phase3) + 1) * 75)
-		)
-		
-	elseif colorType == "random_rgb_1" then
-		local phase1, phase2, phase3 = t * 3.8, t * 4.1, t * 3.5
-		return Color3.fromRGB(
-			math.floor(100 + (math.sin(phase1) + 1) * 77.5),
-			math.floor(100 + (math.sin(phase2) + 1) * 77.5),
-			math.floor(100 + (math.sin(phase3) + 1) * 77.5)
-		)
-		
-	elseif colorType == "random_rgb_2" then
-		local phase1, phase2, phase3 = t * 5.2, t * 4.8, t * 5.5
-		return Color3.fromRGB(
-			math.floor(80 + (math.sin(phase1) + 1) * 87.5),
-			math.floor(80 + (math.sin(phase2) + 1) * 87.5),
-			math.floor(80 + (math.sin(phase3) + 1) * 87.5)
-		)
-		
-	elseif colorType == "owner_rainbow" then
-		local phase = t * 1.5 
-		local hue = (phase % 6) / 6 
-		return Color3.fromHSV(hue, 0.9, 1) 
-		
-	else
-		local hue = (t * 0.8) % 1
-		return Color3.fromHSV(hue, 0.8, 1)
-	end
+    local t = time or tick()
+    
+    if colorType == "pink_pulse" then
+        local intensity = (math.sin(t * 3) + 1) / 2
+        return Color3.fromRGB(255, math.floor(150 + intensity * 105), math.floor(180 + intensity * 75))
+        
+    elseif colorType == "rainbow" then
+        local hue = (t * 0.5) % 1
+        return Color3.fromHSV(hue, 1, 1)
+        
+    elseif colorType == "purple_galaxy" then
+        local phase = t * 2.8
+        local cycle = (phase % 4) / 4
+        if cycle < 0.25 then
+            local progress = cycle / 0.25
+            return Color3.fromRGB(
+            math.floor(75 + progress * 130),
+            math.floor(0 + progress * 50),
+            math.floor(130 + progress * 125)
+            )
+        elseif cycle < 0.5 then
+            local progress = (cycle - 0.25) / 0.25
+            return Color3.fromRGB(
+            math.floor(205 + progress * 50),
+            math.floor(50 + progress * 155),
+            math.floor(255 - progress * 105)
+            )
+        elseif cycle < 0.75 then
+            local progress = (cycle - 0.5) / 0.25
+            return Color3.fromRGB(
+            math.floor(255 - progress * 117),
+            math.floor(205 - progress * 162),
+            math.floor(150 + progress * 76)
+            )
+        else
+            local progress = (cycle - 0.75) / 0.25
+            return Color3.fromRGB(
+            math.floor(138 - progress * 63),
+            math.floor(43 - progress * 43),
+            math.floor(226 - progress * 96)
+            )
+        end
+        
+    elseif colorType == "black_random_rgb" then
+        local phase = t * 3.5
+        local cycle = (phase % 4) / 4
+        if cycle < 0.25 then
+            local progress = cycle / 0.25
+            return Color3.fromRGB(math.floor(0 + progress * 80), 0, 0)
+        elseif cycle < 0.5 then
+            local progress = (cycle - 0.25) / 0.25
+            return Color3.fromRGB(math.floor(80 - progress * 80), math.floor(0 + progress * 80), 0)
+        elseif cycle < 0.75 then
+            local progress = (cycle - 0.5) / 0.25
+            return Color3.fromRGB(0, math.floor(80 - progress * 80), math.floor(0 + progress * 80))
+        else
+            local progress = (cycle - 0.75) / 0.25
+            return Color3.fromRGB(0, 0, math.floor(80 - progress * 80))
+        end
+        
+    elseif colorType == "blue_rgb" then
+        local phase = t * 3.5
+        local cycle = (phase % 3) / 3
+        if cycle < 0.33 then
+            local progress = cycle / 0.33
+            return Color3.fromRGB(0, math.floor(0 + progress * 255), 255)
+        elseif cycle < 0.66 then
+            local progress = (cycle - 0.33) / 0.33
+            return Color3.fromRGB(math.floor(0 + progress * 128), math.floor(255 - progress * 255), 255)
+        else
+            local progress = (cycle - 0.66) / 0.34
+            return Color3.fromRGB(math.floor(128 - progress * 128), 0, 255)
+        end
+        
+    elseif colorType == "red_rgb" then
+        local phase = t * 4.0
+        local cycle = (phase % 3) / 3
+        if cycle < 0.33 then
+            local progress = cycle / 0.33
+            return Color3.fromRGB(255, math.floor(0 + progress * 165), 0)
+        elseif cycle < 0.66 then
+            local progress = (cycle - 0.33) / 0.33
+            return Color3.fromRGB(255, math.floor(165 + progress * 90), math.floor(0 + progress * 203))
+        else
+            local progress = (cycle - 0.66) / 0.34
+            return Color3.fromRGB(255, math.floor(255 - progress * 255), math.floor(203 - progress * 203))
+        end
+        
+    elseif colorType == "random_rgb_new_1" then
+        local phase1, phase2, phase3 = t * 4.5, t * 3.8, t * 5.2
+        return Color3.fromRGB(
+        math.floor(120 + (math.sin(phase1) + 1) * 67.5),
+        math.floor(120 + (math.sin(phase2) + 1) * 67.5),
+        math.floor(120 + (math.sin(phase3) + 1) * 67.5)
+        )
+        
+    elseif colorType == "random_rgb_new_2" then
+        local phase1, phase2, phase3 = t * 3.2, t * 4.7, t * 3.9
+        return Color3.fromRGB(
+        math.floor(100 + (math.sin(phase1) + 1) * 77.5),
+        math.floor(100 + (math.sin(phase2) + 1) * 77.5),
+        math.floor(100 + (math.sin(phase3) + 1) * 77.5)
+        )
+        
+    elseif colorType == "random_rgb_new_3" then
+        local phase1, phase2, phase3 = t * 5.8, t * 4.1, t * 6.2
+        return Color3.fromRGB(
+        math.floor(90 + (math.sin(phase1) + 1) * 82.5),
+        math.floor(90 + (math.sin(phase2) + 1) * 82.5),
+        math.floor(90 + (math.sin(phase3) + 1) * 82.5)
+        )
+        
+    elseif colorType == "random_rgb_new_4" then
+        local phase1, phase2, phase3 = t * 4.3, t * 5.1, t * 3.6
+        return Color3.fromRGB(
+        math.floor(110 + (math.sin(phase1) + 1) * 72.5),
+        math.floor(110 + (math.sin(phase2) + 1) * 72.5),
+        math.floor(110 + (math.sin(phase3) + 1) * 72.5)
+        )
+        
+    elseif colorType == "random_rgb_new_5" then
+        local phase1, phase2, phase3 = t * 3.7, t * 5.4, t * 4.8
+        return Color3.fromRGB(
+        math.floor(95 + (math.sin(phase1) + 1) * 80),
+        math.floor(95 + (math.sin(phase2) + 1) * 80),
+        math.floor(95 + (math.sin(phase3) + 1) * 80)
+        )
+        
+    elseif colorType == "random_rgb_new_6" then
+        local phase1, phase2, phase3 = t * 4.9, t * 3.4, t * 5.7
+        return Color3.fromRGB(
+        math.floor(105 + (math.sin(phase1) + 1) * 75),
+        math.floor(105 + (math.sin(phase2) + 1) * 75),
+        math.floor(105 + (math.sin(phase3) + 1) * 75)
+        )
+        
+    elseif colorType == "random_rgb_1" then
+        local phase1, phase2, phase3 = t * 3.8, t * 4.1, t * 3.5
+        return Color3.fromRGB(
+        math.floor(100 + (math.sin(phase1) + 1) * 77.5),
+        math.floor(100 + (math.sin(phase2) + 1) * 77.5),
+        math.floor(100 + (math.sin(phase3) + 1) * 77.5)
+        )
+        
+    elseif colorType == "random_rgb_2" then
+        local phase1, phase2, phase3 = t * 5.2, t * 4.8, t * 5.5
+        return Color3.fromRGB(
+        math.floor(80 + (math.sin(phase1) + 1) * 87.5),
+        math.floor(80 + (math.sin(phase2) + 1) * 87.5),
+        math.floor(80 + (math.sin(phase3) + 1) * 87.5)
+        )
+        
+    elseif colorType == "owner_rainbow" then
+        local phase = t * 1.5 
+        local hue = (phase % 6) / 6 
+        return Color3.fromHSV(hue, 0.9, 1) 
+        
+    else
+        local hue = (t * 0.8) % 1
+        return Color3.fromHSV(hue, 0.8, 1)
+    end
 end
 
 local function getRank(summit)
-	if summit < 0 then
-		return "虚无 Void", Color3.fromRGB(128, 128, 128)
-	elseif summit >= 3000 then
-		return "起源 Origin", Color3.fromRGB(255, 215, 0)
-	elseif summit >= 2700 then
-		return "创世 Creator", Color3.fromRGB(138, 43, 226)
-	elseif summit >= 2350 then
-		return "至高 Supreme", Color3.fromRGB(255, 69, 0)
-	elseif summit >= 2000 then
-		return "帝王 Emperor", Color3.fromRGB(0, 191, 255)
-	elseif summit >= 1700 then
-		return "圣人 Sage", Color3.fromRGB(70, 130, 180)
-	elseif summit >= 1400 then
-		return "神圣 Holy", Color3.fromRGB(185, 242, 255)
-	elseif summit >= 1150 then
-		return "大真仙 Great True Immortal", Color3.fromRGB(255, 215, 0)
-	elseif summit >= 950 then
-		return "真仙 True Immortal", Color3.fromRGB(255, 140, 0)
-	elseif summit >= 800 then
-		return "天仙 Heaven Immortal", Color3.fromRGB(148, 0, 211)
-	elseif summit >= 675 then
-		return "地仙 Earth Immortal", Color3.fromRGB(75, 0, 130)
-	elseif summit >= 550 then
-		return "渡劫 Nether Pass", Color3.fromRGB(147, 112, 219)
-	elseif summit >= 450 then
-		return "神变 Divine Transformation", Color3.fromRGB(255, 255, 0)
-	elseif summit >= 350 then
-		return "炼虚 Spatial Tempering", Color3.fromRGB(0, 255, 255)
-	elseif summit >= 275 then
-		return "化神 Life Transformation", Color3.fromRGB(255, 215, 0)
-	elseif summit >= 200 then
-		return "合体 Soul Transformation", Color3.fromRGB(34, 139, 34)
-	elseif summit >= 150 then
-		return "炼体 Body Transformation", Color3.fromRGB(255, 165, 0)
-	elseif summit >= 100 then
-		return "碎丹 Core Shattering", Color3.fromRGB(255, 69, 0)
-	elseif summit >= 75 then
-		return "元婴 Primordial Spirit", Color3.fromRGB(210, 180, 140)
-	elseif summit >= 50 then
-		return "金丹 Golden Core", Color3.fromRGB(255, 215, 0)
-	elseif summit >= 35 then
-		return "灵核 Spiritual Core", Color3.fromRGB(200, 200, 200)
-	elseif summit >= 20 then
-		return "元神 Nascent Soul", Color3.fromRGB(138, 43, 226)
-	elseif summit >= 10 then
-		return "筑基 Foundation Establishment", Color3.fromRGB(100, 149, 237)
-	elseif summit >= 5 then
-		return "凝气 Qi Condensation", Color3.fromRGB(0, 191, 255)
-	else
-		return "凡人 Mortal", Color3.fromRGB(255, 255, 255)
-	end
+    if summit < 0 then
+        return "虚无 Void", Color3.fromRGB(128, 128, 128)
+    elseif summit >= 3000 then
+        return "起源 Origin", Color3.fromRGB(255, 215, 0)
+    elseif summit >= 2700 then
+        return "创世 Creator", Color3.fromRGB(138, 43, 226)
+    elseif summit >= 2350 then
+        return "至高 Supreme", Color3.fromRGB(255, 69, 0)
+    elseif summit >= 2000 then
+        return "帝王 Emperor", Color3.fromRGB(0, 191, 255)
+    elseif summit >= 1700 then
+        return "圣人 Sage", Color3.fromRGB(70, 130, 180)
+    elseif summit >= 1400 then
+        return "神圣 Holy", Color3.fromRGB(185, 242, 255)
+    elseif summit >= 1150 then
+        return "大真仙 Great True Immortal", Color3.fromRGB(255, 215, 0)
+    elseif summit >= 950 then
+        return "真仙 True Immortal", Color3.fromRGB(255, 140, 0)
+    elseif summit >= 800 then
+        return "天仙 Heaven Immortal", Color3.fromRGB(148, 0, 211)
+    elseif summit >= 675 then
+        return "地仙 Earth Immortal", Color3.fromRGB(75, 0, 130)
+    elseif summit >= 550 then
+        return "渡劫 Nether Pass", Color3.fromRGB(147, 112, 219)
+    elseif summit >= 450 then
+        return "神变 Divine Transformation", Color3.fromRGB(255, 255, 0)
+    elseif summit >= 350 then
+        return "炼虚 Spatial Tempering", Color3.fromRGB(0, 255, 255)
+    elseif summit >= 275 then
+        return "化神 Life Transformation", Color3.fromRGB(255, 215, 0)
+    elseif summit >= 200 then
+        return "合体 Soul Transformation", Color3.fromRGB(34, 139, 34)
+    elseif summit >= 150 then
+        return "炼体 Body Transformation", Color3.fromRGB(255, 165, 0)
+    elseif summit >= 100 then
+        return "碎丹 Core Shattering", Color3.fromRGB(255, 69, 0)
+    elseif summit >= 75 then
+        return "元婴 Primordial Spirit", Color3.fromRGB(210, 180, 140)
+    elseif summit >= 50 then
+        return "金丹 Golden Core", Color3.fromRGB(255, 215, 0)
+    elseif summit >= 35 then
+        return "灵核 Spiritual Core", Color3.fromRGB(200, 200, 200)
+    elseif summit >= 20 then
+        return "元神 Nascent Soul", Color3.fromRGB(138, 43, 226)
+    elseif summit >= 10 then
+        return "筑基 Foundation Establishment", Color3.fromRGB(100, 149, 237)
+    elseif summit >= 5 then
+        return "凝气 Qi Condensation", Color3.fromRGB(0, 191, 255)
+    else
+        return "凡人 Mortal", Color3.fromRGB(255, 255, 255)
+    end
 end
 
 local function createLabel(parent, props)
-	local label = Instance.new("TextLabel")
-	label.BackgroundTransparency = 1
-	label.TextStrokeColor3 = Color3.new(0, 0, 0)
-	label.TextStrokeTransparency = props.TextStrokeTransparency or 0.3
-	label.Font = props.Font or Enum.Font.GothamBold
-	label.TextScaled = false
-	label.TextSize = props.TextSize or 20
-	label.RichText = false
-	label.Size = props.Size or UDim2.new(1, 0, 1, 0)
-	label.Position = props.Position or UDim2.new(0, 0, 0, 0)
-	label.TextXAlignment = props.TextXAlignment or Enum.TextXAlignment.Center
-	label.TextColor3 = props.TextColor3 or Color3.new(1, 1, 1)
-	label.Text = props.Text or ""
-	label.LayoutOrder = props.LayoutOrder or 0
-	label.AutomaticSize = props.AutomaticSize or Enum.AutomaticSize.None
-	label.Parent = parent
-	return label
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 1
+    label.TextStrokeColor3 = Color3.new(0, 0, 0)
+    label.TextStrokeTransparency = props.TextStrokeTransparency or 0.3
+    label.Font = props.Font or Enum.Font.GothamBold
+    label.TextScaled = false
+    label.TextSize = props.TextSize or 18
+    label.RichText = false
+    label.Size = props.Size or UDim2.new(1, 0, 1, 0)
+    label.Position = props.Position or UDim2.new(0, 0, 0, 0)
+    label.TextXAlignment = props.TextXAlignment or Enum.TextXAlignment.Center
+    label.TextColor3 = props.TextColor3 or Color3.new(1, 1, 1)
+    label.Text = props.Text or ""
+    label.LayoutOrder = props.LayoutOrder or 0
+    label.AutomaticSize = props.AutomaticSize or Enum.AutomaticSize.None
+    label.Parent = parent
+    return label
+end
+
+local function createImageLabel(parent, props)
+    local image = Instance.new("ImageLabel")
+    image.BackgroundTransparency = 1
+    image.Size = props.Size or UDim2.new(0, 20, 0, 20)
+    image.Image = props.Image or ""
+    image.LayoutOrder = props.LayoutOrder or 0
+    image.Parent = parent
+    return image
 end
 
 -- ============================================================================
 -- DISPLAY CREATION
 -- ============================================================================
 
-local function createMinimalistDisplay(player, head, summit)
-	for _, gui in ipairs(head:GetChildren()) do
-		if gui:IsA("BillboardGui") then
-			gui:Destroy()
-		end
-	end
-
-	if head.Parent and head.Parent:IsA("Model") then
-		local humanoid = head.Parent:FindFirstChild("Humanoid")
-		if humanoid then
-			humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-		end
-	end
-
-	local role = getPlayerRole(player.Name)
-	local customTitle = CUSTOM_TITLES[player.Name]
-	local colorType = CUSTOM_COLOR_TYPES[player.Name]
-	local isVerified = isPlayerVerified(player.Name)
-	local isPremium = player.MembershipType == Enum.MembershipType.Premium
-
-	local mainGui = Instance.new("BillboardGui")
-	mainGui.Name = "MainDisplay"
-	mainGui.Adornee = head
-	mainGui.Size = UDim2.new(0, 280, 0, 65)
-	mainGui.StudsOffset = Vector3.new(0, 2.5, 0)
-	mainGui.AlwaysOnTop = true
-	mainGui.MaxDistance = 25
-	mainGui.Parent = head
-
-	local container = Instance.new("Frame")
-	container.Size = UDim2.new(1, 0, 1, 0)
-	container.BackgroundTransparency = 1
-	container.Parent = mainGui
-
-	if role then
-		local roleContainer = Instance.new("Frame")
-		roleContainer.Name = "RoleContainer"
-		roleContainer.Size = UDim2.new(1, 0, 0.31, 0)
-		roleContainer.Position = UDim2.new(0, 0, 0, 0)
-		roleContainer.BackgroundTransparency = 1
-		roleContainer.Parent = container
-
-		if customTitle and colorType then
-			local listLayout = Instance.new("UIListLayout")
-			listLayout.FillDirection = Enum.FillDirection.Horizontal
-			listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-			listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-			listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-			listLayout.Padding = UDim.new(0, 5)
-			listLayout.Parent = roleContainer
-
-			local roleLabel = createLabel(roleContainer, {
-				Size = UDim2.new(0, 0, 1, 0),
-				AutomaticSize = Enum.AutomaticSize.X,
-				LayoutOrder = 1,
-				TextColor3 = ROLE_BRACKET_COLORS[role],
-				Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
-			})
-
-			local titleLabel = createLabel(roleContainer, {
-				Size = UDim2.new(0, 0, 1, 0),
-				AutomaticSize = Enum.AutomaticSize.X,
-				LayoutOrder = 2,
-				Text = customTitle
-			})
-
-			task.spawn(function()
-				while titleLabel and titleLabel.Parent do
-					local currentTime = tick()
-					local animatedColor = getAnimatedColor(colorType, currentTime)
-					titleLabel.TextColor3 = animatedColor
-					task.wait(0.1)
-				end
-			end)
-
-		elseif colorType == "owner_rainbow" then
-			local roleLabel = createLabel(roleContainer, {
-				Text = "[" .. role .. "👑]"
-			})
-
-			task.spawn(function()
-				while roleLabel and roleLabel.Parent do
-					local currentTime = tick()
-					local rainbowColor = getAnimatedColor("owner_rainbow", currentTime)
-					roleLabel.TextColor3 = rainbowColor
-					task.wait(0.1)
-				end
-			end)
-
-		else
-			createLabel(roleContainer, {
-				TextColor3 = ROLE_BRACKET_COLORS[role] or Color3.new(1, 1, 1),
-				Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
-			})
-		end
-	end
-
-	local line2Frame = Instance.new("Frame")
-	line2Frame.Name = "NameLineFrame"
-	line2Frame.Size = UDim2.new(1, 0, 0.35, 0)
-	line2Frame.Position = UDim2.new(0, 0, role and 0.32 or 0.15, 0)
-	line2Frame.BackgroundTransparency = 1
-	line2Frame.Parent = container
-
-	local nameLayout = Instance.new("UIListLayout")
-	nameLayout.FillDirection = Enum.FillDirection.Horizontal
-	nameLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	nameLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	nameLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	nameLayout.Padding = UDim.new(0, 3)
-	nameLayout.Parent = line2Frame
-
-	if isPremium then
-		createLabel(line2Frame, {
-			Size = UDim2.new(0, 0, 1, 0),
-			AutomaticSize = Enum.AutomaticSize.X,
-			LayoutOrder = 1,
-			TextColor3 = Color3.fromRGB(255, 215, 0),
-			Font = Enum.Font.SourceSansBold,
-			TextSize = 18,
-			TextStrokeTransparency = 0.5,
-			Text = utf8.char(0xE001)
-		})
-	end
-
-	createLabel(line2Frame, {
-		Size = UDim2.new(0, 0, 1, 0),
-		AutomaticSize = Enum.AutomaticSize.X,
-		LayoutOrder = 2,
-		TextColor3 = Color3.new(1, 1, 1),
-		Font = Enum.Font.SourceSansBold,
-		TextSize = 18,
-		TextStrokeTransparency = 0.5,
-		Text = player.DisplayName
-	})
-
-	if isVerified then
-		local checkmarkLabel = createLabel(line2Frame, {
-			Size = UDim2.new(0, 0, 1, 0),
-			AutomaticSize = Enum.AutomaticSize.X,
-			LayoutOrder = 3,
-			Font = Enum.Font.SourceSansBold,
-			TextSize = 18,
-			TextStrokeTransparency = 0.5,
-			Text = utf8.char(0xE000)
-		})
-
-		task.spawn(function()
-			while checkmarkLabel and checkmarkLabel.Parent do
-				local time = (tick() % 4) / 4
-				local rainbowColor = Color3.fromHSV(time, 1, 1)
-				checkmarkLabel.TextColor3 = rainbowColor
-				task.wait(0.15)
-			end
-		end)
-	end
-
-	local line3 = createLabel(container, {
-		Size = UDim2.new(1, 0, 0.34, 0),
-		Position = UDim2.new(0, 0, role and 0.67 or 0.50, 0),
-		Font = Enum.Font.SourceSansBold,
-		TextSize = 16,
-		TextStrokeTransparency = 0
-	})
-
-	local function updateInfoLine(summitValue)
-		local summitNum = tonumber(summitValue) or 0
-		local title, titleColor = getRank(summitNum)
-		line3.TextColor3 = titleColor
-		line3.Text = title .. " (" .. tostring(summitNum) .. ")"
-	end
-
-	updateInfoLine(summit.Value)
-	summit:GetPropertyChangedSignal("Value"):Connect(function()
-		updateInfoLine(summit.Value)
-	end)
-	
-	debugLog("Display created for:", player.Name)
+function createMinimalistDisplay(player, head, summit)
+    for _, gui in ipairs(head:GetChildren()) do
+        if gui:IsA("BillboardGui") then
+            gui:Destroy()
+        end
+    end
+    
+    if head.Parent and head.Parent:IsA("Model") then
+        local humanoid = head.Parent:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        end
+    end
+    
+    local role = getPlayerRole(player.Name)
+    local customTitle = CUSTOM_TITLES[player.Name]
+    local colorType = CUSTOM_COLOR_TYPES[player.Name]
+    local isVerified = isPlayerVerified(player.Name)
+    local isPremium = player.MembershipType == Enum.MembershipType.Premium
+    local countryCode = getCountryCode(player)
+    local flagAssetId = COUNTRY_FLAGS[countryCode]
+    local deviceType = getPlayerDevice(player)
+    local deviceAssetId = DEVICE_ICONS[deviceType]
+    
+    local mainGui = Instance.new("BillboardGui")
+    mainGui.Name = "MainDisplay"
+    mainGui.Adornee = head
+    mainGui.Size = UDim2.new(0, 280, 0, 80)
+    mainGui.StudsOffset = Vector3.new(0, 2.5, 0)
+    mainGui.AlwaysOnTop = true
+    mainGui.MaxDistance = 25
+    mainGui.LightInfluence = 0
+    mainGui.ResetOnSpawn = false
+    mainGui.ClipsDescendants = false
+    mainGui.Parent = head
+    
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 1, 0)
+    container.BackgroundTransparency = 1
+    container.Parent = mainGui
+    
+    -- LINE 0: Flag + Device Icons
+    local line0Frame = Instance.new("Frame")
+    line0Frame.Name = "IconLineFrame"
+    line0Frame.Size = UDim2.new(1, 0, 0.25, 0)
+    line0Frame.Position = UDim2.new(0, 0, 0, 0)
+    line0Frame.BackgroundTransparency = 1
+    line0Frame.Parent = container
+    
+    local iconLayout = Instance.new("UIListLayout")
+    iconLayout.FillDirection = Enum.FillDirection.Horizontal
+    iconLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    iconLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    iconLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    iconLayout.Padding = UDim.new(0, 4)
+    iconLayout.Parent = line0Frame
+    
+    if flagAssetId and flagAssetId > 0 then
+        createImageLabel(line0Frame, {
+        Size = UDim2.new(0, 18, 0, 18),  -- Sama dengan size 18
+        Image = "rbxassetid://" .. flagAssetId,
+        LayoutOrder = 1
+        })
+    end
+    
+    if deviceAssetId and deviceAssetId > 0 then
+        createImageLabel(line0Frame, {
+        Size = UDim2.new(0, 18, 0, 18),  -- Sama dengan size 18
+        Image = "rbxassetid://" .. deviceAssetId,
+        LayoutOrder = 2
+        })
+    end
+    
+    -- LINE 1: Role + Custom Title (TextSize 18)
+    if role then
+        local roleContainer = Instance.new("Frame")
+        roleContainer.Name = "RoleContainer"
+        roleContainer.Size = UDim2.new(1, 0, 0.25, 0)
+        roleContainer.Position = UDim2.new(0, 0, 0.25, 0)
+        roleContainer.BackgroundTransparency = 1
+        roleContainer.Parent = container
+        
+        if customTitle and colorType then
+            local listLayout = Instance.new("UIListLayout")
+            listLayout.FillDirection = Enum.FillDirection.Horizontal
+            listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+            listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+            listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            listLayout.Padding = UDim.new(0, 5)
+            listLayout.Parent = roleContainer
+            
+            local roleLabel = createLabel(roleContainer, {
+            Size = UDim2.new(0, 0, 1, 0),
+            AutomaticSize = Enum.AutomaticSize.X,
+            LayoutOrder = 1,
+            TextColor3 = ROLE_BRACKET_COLORS[role],
+            TextSize = 18,  -- Changed from 20 to 18
+            Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
+            })
+            
+            local titleLabel = createLabel(roleContainer, {
+            Size = UDim2.new(0, 0, 1, 0),
+            AutomaticSize = Enum.AutomaticSize.X,
+            LayoutOrder = 2,
+            TextSize = 18,  -- Changed from 20 to 18
+            Text = customTitle
+            })
+            
+            task.spawn(function()
+                while titleLabel and titleLabel.Parent do
+                    local currentTime = tick()
+                    local animatedColor = getAnimatedColor(colorType, currentTime)
+                    titleLabel.TextColor3 = animatedColor
+                    task.wait(0.1)
+                end
+            end)
+            
+        elseif colorType == "owner_rainbow" then
+            local roleLabel = createLabel(roleContainer, {
+            TextSize = 18,  -- Changed from 20 to 18
+            Text = "[" .. role .. "👑]"
+            })
+            
+            task.spawn(function()
+                while roleLabel and roleLabel.Parent do
+                    local currentTime = tick()
+                    local rainbowColor = getAnimatedColor("owner_rainbow", currentTime)
+                    roleLabel.TextColor3 = rainbowColor
+                    task.wait(0.1)
+                end
+            end)
+            
+        else
+            createLabel(roleContainer, {
+            TextColor3 = ROLE_BRACKET_COLORS[role] or Color3.new(1, 1, 1),
+            TextSize = 18,  -- Changed from 20 to 18
+            Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
+            })
+        end
+    end
+    
+    -- LINE 2: Premium + DisplayName + Verified (TextSize 18)
+    local line2Frame = Instance.new("Frame")
+    line2Frame.Name = "NameLineFrame"
+    line2Frame.Size = UDim2.new(1, 0, 0.25, 0)
+    line2Frame.Position = UDim2.new(0, 0, role and 0.50 or 0.35, 0)
+    line2Frame.BackgroundTransparency = 1
+    line2Frame.Parent = container
+    
+    local nameLayout = Instance.new("UIListLayout")
+    nameLayout.FillDirection = Enum.FillDirection.Horizontal
+    nameLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    nameLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    nameLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    nameLayout.Padding = UDim.new(0, 3)
+    nameLayout.Parent = line2Frame
+    
+    if isPremium then
+        createLabel(line2Frame, {
+        Size = UDim2.new(0, 0, 1, 0),
+        AutomaticSize = Enum.AutomaticSize.X,
+        LayoutOrder = 1,
+        TextColor3 = Color3.fromRGB(255, 215, 0),
+        Font = Enum.Font.SourceSansBold,
+        TextSize = 18,
+        TextStrokeTransparency = 0.5,
+        Text = utf8.char(0xE001)
+        })
+    end
+    
+    createLabel(line2Frame, {
+    Size = UDim2.new(0, 0, 1, 0),
+    AutomaticSize = Enum.AutomaticSize.X,
+    LayoutOrder = 2,
+    TextColor3 = Color3.new(1, 1, 1),
+    Font = Enum.Font.SourceSansBold,
+    TextSize = 18,
+    TextStrokeTransparency = 0.5,
+    Text = player.DisplayName
+    })
+    
+    if isVerified then
+        local checkmarkLabel = createLabel(line2Frame, {
+        Size = UDim2.new(0, 0, 1, 0),
+        AutomaticSize = Enum.AutomaticSize.X,
+        LayoutOrder = 3,
+        Font = Enum.Font.SourceSansBold,
+        TextSize = 18,
+        TextStrokeTransparency = 0.5,
+        Text = utf8.char(0xE000)
+        })
+        
+        task.spawn(function()
+            while checkmarkLabel and checkmarkLabel.Parent do
+                local time = (tick() % 4) / 4
+                local rainbowColor = Color3.fromHSV(time, 1, 1)
+                checkmarkLabel.TextColor3 = rainbowColor
+                task.wait(0.15)
+            end
+        end)
+    end
+    
+    -- LINE 3: Summit Rank
+    local line3 = createLabel(container, {
+    Size = UDim2.new(1, 0, 0.25, 0),
+    Position = UDim2.new(0, 0, role and 0.75 or 0.60, 0),
+    Font = Enum.Font.SourceSansBold,
+    TextSize = 16,
+    TextStrokeTransparency = 0
+    })
+    
+    local function updateInfoLine(summitValue)
+        local summitNum = tonumber(summitValue) or 0
+        local title, titleColor = getRank(summitNum)
+        line3.TextColor3 = titleColor
+        line3.Text = title .. " (" .. tostring(summitNum) .. ")"
+    end
+    
+    updateInfoLine(summit.Value)
+    summit:GetPropertyChangedSignal("Value"):Connect(function()
+        updateInfoLine(summit.Value)
+    end)
+    
+    debugLog("Display created:", player.Name, "Device:", deviceType)
 end
 
 -- ============================================================================
@@ -677,28 +821,28 @@ end
 -- ============================================================================
 
 local function setupPlayerDisplay(player)
-	local function onCharacterAdded(character)
-		local head = character:WaitForChild("Head", 5)
-		if not head then return end
-
-		local leaderstats = player:WaitForChild("leaderstats", 10)
-		if not leaderstats then return end
-
-		local summit = leaderstats:WaitForChild("Summit", 5)
-		if not summit then return end
-
-		createMinimalistDisplay(player, head, summit)
-	end
-
-	if player.Character then
-		onCharacterAdded(player.Character)
-	end
-
-	player.CharacterAdded:Connect(onCharacterAdded)
+    local function onCharacterAdded(character)
+        local head = character:WaitForChild("Head", 5)
+        if not head then return end
+        
+        local leaderstats = player:WaitForChild("leaderstats", 10)
+        if not leaderstats then return end
+        
+        local summit = leaderstats:WaitForChild("Summit", 5)
+        if not summit then return end
+        
+        createMinimalistDisplay(player, head, summit)
+    end
+    
+    if player.Character then
+        onCharacterAdded(player.Character)
+    end
+    
+    player.CharacterAdded:Connect(onCharacterAdded)
 end
 
 for _, player in ipairs(Players:GetPlayers()) do
-	setupPlayerDisplay(player)
+    setupPlayerDisplay(player)
 end
 
 Players.PlayerAdded:Connect(setupPlayerDisplay)
@@ -709,41 +853,45 @@ Players.PlayerAdded:Connect(setupPlayerDisplay)
 
 local RefreshTitleEvent = ReplicatedStorage:WaitForChild("RefreshTitle", 10)
 if RefreshTitleEvent then
-	RefreshTitleEvent.OnClientEvent:Connect(function(changedPlayerId)
-		debugLog("Title refresh request for UserId:", changedPlayerId)
-		
-		local changedPlayer = Players:GetPlayerByUserId(changedPlayerId)
-		
-		if changedPlayer and changedPlayer.Character then
-			local head = changedPlayer.Character:FindFirstChild("Head")
-			if head then
-				local oldDisplay = head:FindFirstChild("MainDisplay")
-				if oldDisplay then
-					oldDisplay:Destroy()
-				end
-				
-				task.wait(0.3)
-				
-				local leaderstats = changedPlayer:FindFirstChild("leaderstats")
-				if leaderstats then
-					local summit = leaderstats:FindFirstChild("Summit")
-					if summit then
-						createMinimalistDisplay(changedPlayer, head, summit)
-						debugLog("Title refreshed for:", changedPlayer.Name)
-					end
-				end
-			end
-		end
-	end)
-	
-	debugLog("Title refresh listener active")
+    RefreshTitleEvent.OnClientEvent:Connect(function(changedPlayerId)
+        debugLog("Title refresh request for UserId:", changedPlayerId)
+        
+        local changedPlayer = Players:GetPlayerByUserId(changedPlayerId)
+        
+        if changedPlayer and changedPlayer.Character then
+            local head = changedPlayer.Character:FindFirstChild("Head")
+            if head then
+                local oldDisplay = head:FindFirstChild("MainDisplay")
+                if oldDisplay then
+                    oldDisplay:Destroy()
+                end
+                
+                task.wait(0.3)
+                
+                local leaderstats = changedPlayer:FindFirstChild("leaderstats")
+                if leaderstats then
+                    local summit = leaderstats:FindFirstChild("Summit")
+                    if summit then
+                        createMinimalistDisplay(changedPlayer, head, summit)
+                        debugLog("Title refreshed for:", changedPlayer.Name)
+                    end
+                end
+            end
+        end
+    end)
+    
+    debugLog("Title refresh listener active")
 end
 
 -- ============================================================================
 -- INITIALIZATION
 -- ============================================================================
 
+print("")
 print("========================================")
-print("✅ Player Display System Ready")
-print("👤 Author: ItoRenz00")
+print("  PLAYER DISPLAY SYSTEM")
 print("========================================")
+print("  Author: ItoRenz00")
+print("  Version: 2.0")
+print("========================================")
+print("")
