@@ -1,0 +1,136 @@
+--[[
+═══════════════════════════════════════════════════════════════════════════════
+PLAYER DEVICE MANAGER SERVER
+═══════════════════════════════════════════════════════════════════════════════
+Author: ItoRenz00
+Version: 1.0
+Date: November 23, 2025
+
+Description:
+Server-side device detection manager that stores and synchronizes player
+device information across all clients. Ensures accurate device display
+for all players regardless of platform.
+
+Installation:
+Place in: ServerScriptService
+
+How it works:
+1. Receives device info from each client via UpdateDevice RemoteEvent
+2. Stores device data in server-side table
+3. Broadcasts device updates to all clients via DeviceUpdate RemoteEvent
+4. Sends existing device data to newly joined players
+5. Cleans up data when players leave
+═══════════════════════════════════════════════════════════════════════════════
+--]]
+
+-- ============================================================================
+-- SERVICES
+-- ============================================================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- ============================================================================
+-- REMOTE EVENTS SETUP
+-- ============================================================================
+
+print("[Device Manager] Initializing RemoteEvents...")
+
+local UpdateDeviceEvent = ReplicatedStorage:FindFirstChild("UpdateDevice")
+if not UpdateDeviceEvent then
+    UpdateDeviceEvent = Instance.new("RemoteEvent")
+    UpdateDeviceEvent.Name = "UpdateDevice"
+    UpdateDeviceEvent.Parent = ReplicatedStorage
+    print("[Device Manager] Created UpdateDevice RemoteEvent")
+end
+
+local DeviceUpdateEvent = ReplicatedStorage:FindFirstChild("DeviceUpdate")
+if not DeviceUpdateEvent then
+    DeviceUpdateEvent = Instance.new("RemoteEvent")
+    DeviceUpdateEvent.Name = "DeviceUpdate"
+    DeviceUpdateEvent.Parent = ReplicatedStorage
+    print("[Device Manager] Created DeviceUpdate RemoteEvent")
+end
+
+-- ============================================================================
+-- DEVICE STORAGE
+-- ============================================================================
+
+local PlayerDevices = {}
+
+-- ============================================================================
+-- DEVICE UPDATE HANDLER
+-- ============================================================================
+
+UpdateDeviceEvent.OnServerEvent:Connect(function(player, deviceType)
+    if not player or not deviceType then 
+        warn("[Device Manager] Invalid device update from", player and player.Name or "Unknown")
+        return 
+    end
+    
+    -- Validate device type
+    local validDevices = {Computer = true, Phone = true, Console = true}
+    if not validDevices[deviceType] then
+        warn("[Device Manager] Invalid device type:", deviceType, "from", player.Name)
+        return
+    end
+    
+    -- Store device info
+    PlayerDevices[player.UserId] = deviceType
+    print("[Device Manager] Device registered:", player.Name, "(UserId:", player.UserId .. ") ->", deviceType)
+    
+    -- Broadcast to ALL clients (including sender)
+    for _, otherPlayer in ipairs(Players:GetPlayers()) do
+        DeviceUpdateEvent:FireClient(otherPlayer, player.UserId, deviceType)
+    end
+    
+    print("[Device Manager] Broadcasted device update to", #Players:GetPlayers(), "clients")
+end)
+
+-- ============================================================================
+-- NEW PLAYER HANDLER
+-- ============================================================================
+
+Players.PlayerAdded:Connect(function(newPlayer)
+    print("[Device Manager] Player joined:", newPlayer.Name, "(UserId:", newPlayer.UserId .. ")")
+    
+    -- Wait for client to load
+    task.wait(1)
+    
+    -- Send all existing device data to new player
+    local deviceCount = 0
+    for userId, deviceType in pairs(PlayerDevices) do
+        DeviceUpdateEvent:FireClient(newPlayer, userId, deviceType)
+        deviceCount = deviceCount + 1
+    end
+    
+    if deviceCount > 0 then
+        print("[Device Manager] Sent", deviceCount, "existing device records to", newPlayer.Name)
+    end
+end)
+
+-- ============================================================================
+-- PLAYER LEAVE HANDLER
+-- ============================================================================
+
+Players.PlayerRemoving:Connect(function(player)
+    if PlayerDevices[player.UserId] then
+        local device = PlayerDevices[player.UserId]
+        PlayerDevices[player.UserId] = nil
+        print("[Device Manager] Removed device data for", player.Name, "(UserId:", player.UserId, "- Device:", device .. ")")
+    end
+end)
+
+-- ============================================================================
+-- INITIALIZATION
+-- ============================================================================
+
+print("")
+print("========================================")
+print("  PLAYER DEVICE MANAGER SERVER")
+print("========================================")
+print("  Author: ItoRenz00")
+print("  Version: 1.0")
+print("  Status: ACTIVE")
+print("========================================")
+print("")
