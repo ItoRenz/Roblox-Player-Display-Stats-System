@@ -3,8 +3,8 @@
 PLAYER DISPLAY CLIENT
 ═══════════════════════════════════════════════════════════════════════════════
 Author: ItoRenz00
-Version: 2.0
-Date: November 21, 2025
+Version: 2.2
+Date: November 23, 2025
 
 Description:
 Custom player overhead display with roles, titles, ranks, country flags,
@@ -12,6 +12,12 @@ and device detection synchronized across all players.
 
 Installation:
 Place in: StarterPlayer > StarterPlayerScripts
+
+Changelog v2.2:
+- Reduced all text sizes (18→16, 16→14)
+- Reduced icon sizes (18x18→16x16)
+- Fixed device detection sync issues
+- Updated StudsOffset to 3.0
 ═══════════════════════════════════════════════════════════════════════════════
 --]]
 
@@ -249,13 +255,17 @@ local localDevice = detectDevice()
 PlayerDevices[LocalPlayer.UserId] = localDevice
 
 local UpdateDeviceEvent = ReplicatedStorage:WaitForChild("UpdateDevice", 10)
+local DeviceUpdateEvent = ReplicatedStorage:WaitForChild("DeviceUpdate", 10)
+
+task.wait(0.5)
 if UpdateDeviceEvent then
     UpdateDeviceEvent:FireServer(localDevice)
+    print("[PlayerDisplay Client] Sent device:", localDevice, "for", LocalPlayer.Name)
 end
 
-local DeviceUpdateEvent = ReplicatedStorage:WaitForChild("DeviceUpdate", 10)
 if DeviceUpdateEvent then
     DeviceUpdateEvent.OnClientEvent:Connect(function(userId, device)
+        print("[PlayerDisplay Client] Received device update - UserId:", userId, "Device:", device)
         PlayerDevices[userId] = device
         
         local player = Players:GetPlayerByUserId(userId)
@@ -287,6 +297,7 @@ UserInputService.LastInputTypeChanged:Connect(function()
         PlayerDevices[LocalPlayer.UserId] = newDevice
         if UpdateDeviceEvent then
             UpdateDeviceEvent:FireServer(newDevice)
+            print("[PlayerDisplay Client] Device changed to:", newDevice)
         end
     end
 end)
@@ -563,7 +574,7 @@ local function createLabel(parent, props)
     label.TextStrokeTransparency = props.TextStrokeTransparency or 0.3
     label.Font = props.Font or Enum.Font.GothamBold
     label.TextScaled = false
-    label.TextSize = props.TextSize or 18
+    label.TextSize = props.TextSize or 16
     label.RichText = false
     label.Size = props.Size or UDim2.new(1, 0, 1, 0)
     label.Position = props.Position or UDim2.new(0, 0, 0, 0)
@@ -618,7 +629,7 @@ function createMinimalistDisplay(player, head, summit)
     mainGui.Name = "MainDisplay"
     mainGui.Adornee = head
     mainGui.Size = UDim2.new(0, 280, 0, 80)
-    mainGui.StudsOffset = Vector3.new(0, 2.5, 0)
+    mainGui.StudsOffset = Vector3.new(0, 3.0, 0)
     mainGui.AlwaysOnTop = true
     mainGui.MaxDistance = 25
     mainGui.LightInfluence = 0
@@ -649,7 +660,7 @@ function createMinimalistDisplay(player, head, summit)
     
     if flagAssetId and flagAssetId > 0 then
         createImageLabel(line0Frame, {
-        Size = UDim2.new(0, 18, 0, 18),  -- Sama dengan size 18
+        Size = UDim2.new(0, 16, 0, 16),
         Image = "rbxassetid://" .. flagAssetId,
         LayoutOrder = 1
         })
@@ -657,13 +668,13 @@ function createMinimalistDisplay(player, head, summit)
     
     if deviceAssetId and deviceAssetId > 0 then
         createImageLabel(line0Frame, {
-        Size = UDim2.new(0, 18, 0, 18),  -- Sama dengan size 18
+        Size = UDim2.new(0, 16, 0, 16),
         Image = "rbxassetid://" .. deviceAssetId,
         LayoutOrder = 2
         })
     end
     
-    -- LINE 1: Role + Custom Title (TextSize 18)
+    -- LINE 1: Role + Custom Title
     if role then
         local roleContainer = Instance.new("Frame")
         roleContainer.Name = "RoleContainer"
@@ -686,7 +697,7 @@ function createMinimalistDisplay(player, head, summit)
             AutomaticSize = Enum.AutomaticSize.X,
             LayoutOrder = 1,
             TextColor3 = ROLE_BRACKET_COLORS[role],
-            TextSize = 18,  -- Changed from 20 to 18
+            TextSize = 16,
             Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
             })
             
@@ -694,7 +705,7 @@ function createMinimalistDisplay(player, head, summit)
             Size = UDim2.new(0, 0, 1, 0),
             AutomaticSize = Enum.AutomaticSize.X,
             LayoutOrder = 2,
-            TextSize = 18,  -- Changed from 20 to 18
+            TextSize = 16,
             Text = customTitle
             })
             
@@ -709,7 +720,7 @@ function createMinimalistDisplay(player, head, summit)
             
         elseif colorType == "owner_rainbow" then
             local roleLabel = createLabel(roleContainer, {
-            TextSize = 18,  -- Changed from 20 to 18
+            TextSize = 16,
             Text = "[" .. role .. "👑]"
             })
             
@@ -725,13 +736,13 @@ function createMinimalistDisplay(player, head, summit)
         else
             createLabel(roleContainer, {
             TextColor3 = ROLE_BRACKET_COLORS[role] or Color3.new(1, 1, 1),
-            TextSize = 18,  -- Changed from 20 to 18
+            TextSize = 16,
             Text = "[" .. role .. (ROLE_EMOJI[role] or "") .. "]"
             })
         end
     end
     
-    -- LINE 2: Premium + DisplayName + Verified (TextSize 18)
+    -- LINE 2: Premium + DisplayName + Verified
     local line2Frame = Instance.new("Frame")
     line2Frame.Name = "NameLineFrame"
     line2Frame.Size = UDim2.new(1, 0, 0.25, 0)
@@ -754,7 +765,7 @@ function createMinimalistDisplay(player, head, summit)
         LayoutOrder = 1,
         TextColor3 = Color3.fromRGB(255, 215, 0),
         Font = Enum.Font.SourceSansBold,
-        TextSize = 18,
+        TextSize = 16,
         TextStrokeTransparency = 0.5,
         Text = utf8.char(0xE001)
         })
@@ -766,7 +777,7 @@ function createMinimalistDisplay(player, head, summit)
     LayoutOrder = 2,
     TextColor3 = Color3.new(1, 1, 1),
     Font = Enum.Font.SourceSansBold,
-    TextSize = 18,
+    TextSize = 16,
     TextStrokeTransparency = 0.5,
     Text = player.DisplayName
     })
@@ -777,7 +788,7 @@ function createMinimalistDisplay(player, head, summit)
         AutomaticSize = Enum.AutomaticSize.X,
         LayoutOrder = 3,
         Font = Enum.Font.SourceSansBold,
-        TextSize = 18,
+        TextSize = 16,
         TextStrokeTransparency = 0.5,
         Text = utf8.char(0xE000)
         })
@@ -797,7 +808,7 @@ function createMinimalistDisplay(player, head, summit)
     Size = UDim2.new(1, 0, 0.25, 0),
     Position = UDim2.new(0, 0, role and 0.75 or 0.60, 0),
     Font = Enum.Font.SourceSansBold,
-    TextSize = 16,
+    TextSize = 14,
     TextStrokeTransparency = 0
     })
     
@@ -889,9 +900,9 @@ end
 
 print("")
 print("========================================")
-print("  PLAYER DISPLAY SYSTEM")
+print("  PLAYER DISPLAY CLIENT")
 print("========================================")
 print("  Author: ItoRenz00")
-print("  Version: 2.0")
+print("  Version: 2.2")
 print("========================================")
 print("")
